@@ -1,0 +1,30 @@
+{
+	"compilerOptions": {
+		"target": "esnext",
+		"module": "es6",
+		"lib": ["es2016"],
+		"allowJs": true,
+		"jsx": "react-native",
+		"declaration": true,
+		"outDir": "dist",
+		"rootDir": "src",
+		"isolatedModules": true,
+		"strict": true,
+		"moduleResolution": "node",
+		"allowSyntheticDefaultImports": true,
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"types": ["react", "react-native"]
+	},
+	"exclude": [
+		"node_modules",
+		"babel.config.js",
+		"metro.config.js",
+		"jest.config.js",
+		"src/**/*.spec.ts",
+		"src/**/*.spec.tsx",
+		"src/**/*.test.ts",
+		"src/**/*.test.tsx"
+	],
+	"include": ["src/**/*"]
+}
