@@ -21,7 +21,6 @@ const checkUpdateNeeded = async ({
     const inAppUpdates = await new SpInAppUpdates(isDebug);
 
     const storeResponse = await inAppUpdates.checkNeedsUpdate({curVersion});
-    console.log('storeResponse :', storeResponse);
 
     if (storeResponse?.shouldUpdate) {
       let updateOptions: StartUpdateOptions = {};

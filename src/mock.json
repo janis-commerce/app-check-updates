@@ -8,6 +8,6 @@
         "updatePriority": 0, 
         "versionCode": 2314
     }, 
-    "shouldUpdate": false, 
+    "shouldUpdate": true, 
     "storeVersion": "2314"
 }
