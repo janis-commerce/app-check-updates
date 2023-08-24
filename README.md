@@ -39,8 +39,11 @@ const App = () => {
 
 ReactDOM.render(<App />, document.querySelector('#app'));
 ```
-##### Note:
-You can uses [react-native-device-info](https://github.com/react-native-device-info/react-native-device-info) to get curVersion
+##### Notes:
+- You can uses [react-native-device-info](https://github.com/react-native-device-info/react-native-device-info) to get curVersion
+
+- In-app updates are available only to user accounts that own the app. So, make sure the account you’re using has downloaded your app from Google Play at least once before using the account to test in-app updates.
+
 
 ### Parameters
 
