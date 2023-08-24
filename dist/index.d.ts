@@ -1,7 +1,7 @@
-interface IcheckUpdateNeeded {
+interface IappCheckUpdates {
     curVersion: string;
     isAndroid?: boolean;
     isDebug?: boolean;
 }
-declare const checkUpdateNeeded: ({ curVersion, isAndroid, isDebug, }: IcheckUpdateNeeded) => Promise<void>;
-export { checkUpdateNeeded };
+declare const appCheckUpdates: ({ curVersion, isAndroid, isDebug, }: IappCheckUpdates) => Promise<null | undefined>;
+export default appCheckUpdates;

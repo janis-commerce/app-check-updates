@@ -1,15 +1,15 @@
 import React from 'react';
 import {View, Text} from 'react-native';
-import {checkUpdateNeeded} from './src';
+import appCheckUpdates from './src';
 
 const App = () => {
-  checkUpdateNeeded();
+	appCheckUpdates();
 
-  return (
-    <View>
-      <Text>checkUpdateNeeded</Text>
-    </View>
-  );
+	return (
+		<View>
+			<Text>app check updates</Text>
+		</View>
+	);
 };
 
 export default App;
