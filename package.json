@@ -1,5 +1,5 @@
 {
-  "name": "app-check-updates",
+  "name": "@janiscommerce/app-check-updates",
   "version": "0.0.1",
   "license": "ISC",
   "scripts": {
