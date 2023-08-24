@@ -30,8 +30,6 @@ const appCheckUpdates = async ({
 			inAppUpdates.startUpdate(updateOptions);
 		}
 	} catch (error) {
-		// eslint-disable-next-line no-console
-		console.error(error);
 		Promise.reject();
 	}
 };
