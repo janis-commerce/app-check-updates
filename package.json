@@ -15,6 +15,7 @@
     "build": "rm -rf dist && tsc"
   },
   "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
   "lint-staged": {
     "*{js,jsx,ts,tsx}": [
       "prettier --write",
