@@ -25,12 +25,15 @@ describe('App check updates funtion', () => {
 		});
 
 		it('A promise is reject', async () => {
-			try {
-				mockCheckNeedUpdate.mockRejectedValueOnce(() => new Error());
-				await appCheckUpdates({curVersion: '0.0.1'});
-			} catch (e) {
-				expect(e).toEqual('Error');
-			}
+			mockCheckNeedUpdate.mockRejectedValueOnce(() => new Error());
+			const response = await appCheckUpdates({curVersion: '0.0.1'});
+			expect(response).toEqual(false);
+		});
+
+		it('A promise is reject in debug mode', async () => {
+			mockCheckNeedUpdate.mockRejectedValueOnce(() => new Error());
+			const response = await appCheckUpdates({curVersion: '0.0.1', isDebug: true});
+			expect(response).toEqual(false);
 		});
 	});
 

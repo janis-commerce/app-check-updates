@@ -27,10 +27,15 @@ const appCheckUpdates = async ({
 					updateType: IAUUpdateKind.FLEXIBLE,
 				};
 			}
-			inAppUpdates.startUpdate(updateOptions);
+			await inAppUpdates.startUpdate(updateOptions);
 		}
+		return true;
 	} catch (error) {
-		Promise.reject();
+		if (isDebug) {
+			// eslint-disable-next-line no-console
+			console.error(error);
+		}
+		return false;
 	}
 };
 
