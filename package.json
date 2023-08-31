@@ -1,54 +1,57 @@
 {
-  "name": "@janiscommerce/app-check-updates",
-  "version": "0.0.1",
-  "license": "ISC",
-  "scripts": {
-    "android": "react-native run-android",
-    "ios": "react-native run-ios",
-    "start": "react-native start",
-    "lint": "eslint .",
-    "test": "jest",
-    "prepare": "husky install",
-    "validate:code": "npm run lint -- --fix && npm t",
-    "test:commit": "jest --colors --bail --findRelatedTests",
-    "test:coverage": "jest --collectCoverage",
-    "build": "rm -rf dist && tsc"
-  },
-  "main": "dist/index.js",
-  "typings": "dist/index.d.ts",
-  "lint-staged": {
-    "*{js,jsx,ts,tsx}": [
-      "prettier --write",
-      "eslint --fix"
-    ],
-    "*.{js,jsx,ts,tsx}": [
-      "npm run test:commit"
-    ]
-  },
-  "resolutions": {
-    "@types/react": "^16"
-  },
-  "peerDependencies": {
-    "react": ">=17.0.2 <=18.2.0",
-    "react-native": ">=0.67.5 <=0.71.5",
-    "sp-react-native-in-app-updates": "1.2.0"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.12.9",
-    "@babel/preset-env": "^7.22.7",
-    "@babel/runtime": "^7.12.5",
-    "@react-native-community/eslint-config": "^2.0.0",
-    "@types/jest": "^29.5.3",
-    "@types/node": "^20.5.7",
-    "@types/react-native": "^0.63.2",
-    "babel-jest": "^26.6.3",
-    "eslint": "7.14.0",
-    "husky": "^8.0.0",
-    "jest": "^26.6.3",
-    "metro-react-native-babel-preset": "^0.66.2",
-    "react": "17.0.2",
-    "react-native": "0.67.5",
-    "react-test-renderer": "17.0.2",
-    "typescript": "^5.1.6"
-  }
+	"name": "@janiscommerce/app-check-updates",
+	"version": "0.0.1",
+	"license": "ISC",
+	"scripts": {
+		"android": "react-native run-android",
+		"ios": "react-native run-ios",
+		"start": "react-native start",
+		"lint": "eslint .",
+		"test": "jest",
+		"prepare": "husky install",
+		"validate:code": "npm run lint -- --fix && tsc --noEmit && npm t",
+		"test:commit": "jest --colors --bail --findRelatedTests",
+		"test:coverage": "tsc --noEmit && jest --collectCoverage",
+		"build": "rm -rf dist && tsc"
+	},
+	"main": "dist/index.js",
+	"typings": "dist/index.d.ts",
+	"lint-staged": {
+		"*{js,jsx,ts,tsx}": [
+			"prettier --write",
+			"eslint --fix"
+		],
+		"*.{js,jsx,ts,tsx}": [
+			"npm run test:commit"
+		],
+		"*.{ts,tsx}": [
+			"tsc --noEmit"
+		]
+	},
+	"resolutions": {
+		"@types/react": "^16"
+	},
+	"peerDependencies": {
+		"react": ">=17.0.2 <=18.2.0",
+		"react-native": ">=0.67.5 <=0.71.5",
+		"sp-react-native-in-app-updates": "1.2.0"
+	},
+	"devDependencies": {
+		"@babel/core": "^7.12.9",
+		"@babel/preset-env": "^7.22.7",
+		"@babel/runtime": "^7.12.5",
+		"@react-native-community/eslint-config": "^2.0.0",
+		"@types/jest": "^29.5.3",
+		"@types/node": "^20.5.7",
+		"@types/react-native": "^0.63.2",
+		"babel-jest": "^26.6.3",
+		"eslint": "7.14.0",
+		"husky": "^8.0.0",
+		"jest": "^26.6.3",
+		"metro-react-native-babel-preset": "^0.66.2",
+		"react": "17.0.2",
+		"react-native": "0.67.5",
+		"react-test-renderer": "17.0.2",
+		"typescript": "^4.1.3"
+	}
 }
