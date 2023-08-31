@@ -1,9 +1,11 @@
-import 'react-native';
+import {Platform} from 'react-native';
 import appCheckUpdates from './index';
+import * as utils from './utils';
 import mock from './mock.json';
 
 const mockStartUpdate = jest.fn();
 const mockCheckNeedUpdate = jest.fn().mockImplementation(() => mock);
+const mockIsDevEnv = jest.spyOn(utils, 'isDevEnv');
 
 jest.mock('sp-react-native-in-app-updates', () => {
 	return {
@@ -25,33 +27,36 @@ describe('App check updates funtion', () => {
 		});
 
 		it('A promise is reject', async () => {
+			mockIsDevEnv.mockReturnValueOnce(false);
 			mockCheckNeedUpdate.mockRejectedValueOnce(() => new Error());
 			const response = await appCheckUpdates({curVersion: '0.0.1'});
 			expect(response).toEqual(false);
 		});
 
 		it('A promise is reject in debug mode', async () => {
+			mockIsDevEnv.mockReturnValueOnce(true);
 			mockCheckNeedUpdate.mockRejectedValueOnce(() => new Error());
-			const response = await appCheckUpdates({curVersion: '0.0.1', isDebug: true});
+			const response = await appCheckUpdates({curVersion: '0.0.1'});
 			expect(response).toEqual(false);
 		});
 	});
 
 	describe('Works correctly', () => {
 		it('CheckNeedsUpdate is called', async () => {
-			await appCheckUpdates({curVersion: '0.0.1', isAndroid: true});
+			await appCheckUpdates({curVersion: '0.0.1'});
 
 			expect(mockCheckNeedUpdate).toHaveBeenCalled();
 		});
 
 		it('StartUpdate is called', async () => {
-			await appCheckUpdates({curVersion: '0.0.1', isAndroid: true});
+			await appCheckUpdates({curVersion: '0.0.1'});
 
 			expect(mockStartUpdate).toHaveBeenCalled();
 		});
 
-		it('Is not a android device', async () => {
-			await appCheckUpdates({curVersion: '0.0.1', isAndroid: false});
+		it('Is a android device', async () => {
+			Platform.OS = 'android';
+			await appCheckUpdates({curVersion: '0.0.1'});
 
 			expect(mockStartUpdate).toHaveBeenCalled();
 		});
@@ -62,7 +67,7 @@ describe('App check updates funtion', () => {
 				shouldUpdate: false,
 			}));
 
-			await appCheckUpdates({curVersion: '0.0.1', isAndroid: true});
+			await appCheckUpdates({curVersion: '0.0.1'});
 
 			expect(mockStartUpdate).toHaveBeenCalledTimes(0);
 		});

@@ -1,16 +1,13 @@
+import {Platform} from 'react-native';
 import SpInAppUpdates, {IAUUpdateKind, StartUpdateOptions} from 'sp-react-native-in-app-updates';
+import {isDevEnv} from './utils';
 
 interface IappCheckUpdates {
 	curVersion: string;
-	isAndroid?: boolean;
-	isDebug?: boolean;
 }
 
-const appCheckUpdates = async ({
-	curVersion,
-	isAndroid = true,
-	isDebug = false,
-}: IappCheckUpdates) => {
+const appCheckUpdates = async ({curVersion}: IappCheckUpdates) => {
+	const isDebug = isDevEnv();
 	try {
 		if (typeof curVersion !== 'string' || !curVersion) {
 			return null;
@@ -21,7 +18,7 @@ const appCheckUpdates = async ({
 
 		if (storeResponse?.shouldUpdate) {
 			let updateOptions: StartUpdateOptions = {};
-			if (isAndroid) {
+			if (Platform.OS === 'android') {
 				// android only, on iOS the user will be promped to go to your app store page
 				updateOptions = {
 					updateType: IAUUpdateKind.FLEXIBLE,

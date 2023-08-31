@@ -50,5 +50,4 @@ ReactDOM.render(<App />, document.querySelector('#app'));
 | Options | Type  | Description  |
 |---|---|---|
 | curVersion  | (required) String | The semver of your current app version  |
-| isAndroid  | (optional) Boolean | Defines if we are on an android device, (default: `true`)  |
-| isDebug  | (optional) Boolean | Defines if debug mode is used in the library, (default: `false`)  |
+
