@@ -30,7 +30,7 @@ const appCheckUpdates = async ({curVersion}: IappCheckUpdates) => {
 	} catch (error) {
 		if (isDebug) {
 			// eslint-disable-next-line no-console
-			console.error(error);
+			console.log(error);
 		}
 		return false;
 	}
