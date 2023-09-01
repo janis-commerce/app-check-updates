@@ -4,10 +4,11 @@ import {isDevEnv} from './utils';
 
 interface IappCheckUpdates {
 	curVersion: string;
+	isDebug?: boolean;
 }
 
-const appCheckUpdates = async ({curVersion}: IappCheckUpdates) => {
-	const isDebug = isDevEnv();
+const appCheckUpdates = async ({curVersion, isDebug = false}: IappCheckUpdates) => {
+	const isNotProductionEnv = isDevEnv();
 	try {
 		if (typeof curVersion !== 'string' || !curVersion) {
 			return null;
@@ -28,9 +29,9 @@ const appCheckUpdates = async ({curVersion}: IappCheckUpdates) => {
 		}
 		return true;
 	} catch (error) {
-		if (isDebug) {
+		if (isNotProductionEnv) {
 			// eslint-disable-next-line no-console
-			console.log(error);
+			console.error(error);
 		}
 		return false;
 	}
