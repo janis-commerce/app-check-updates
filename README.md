@@ -29,7 +29,7 @@ import {View, Text} from 'react-native';
 import appCheckUpdates from '@janiscommerce/app-check-updates';
 
 const App = () => {
-  appCheckUpdates({curVersion:"0.0.1"});
+  appCheckUpdates({buildNumber:"2350"});
 	return (
 		<View>
 			<Text>app check updates</Text>
@@ -42,12 +42,10 @@ ReactDOM.render(<App />, document.querySelector('#app'));
 
 ##### Notes:
 
-- You can uses [react-native-device-info](https://github.com/react-native-device-info/react-native-device-info) to get curVersion
-
 - In-app updates are available only to user accounts that own the app. So, make sure the account you’re using has downloaded your app from Google Play at least once before using the account to test in-app updates.
 
 ### Parameters
 
 | Options    | Type              | Description                            |
 | ---------- | ----------------- | -------------------------------------- |
-| curVersion | (required) String | The semver of your current app version |
+| buildNumber | (required) String | The build number of your current app version |

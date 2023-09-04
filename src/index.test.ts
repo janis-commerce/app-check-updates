@@ -22,41 +22,41 @@ jest.mock('sp-react-native-in-app-updates', () => {
 
 describe('App check updates funtion', () => {
 	describe('Error handling', () => {
-		it('CurVersion is not a string', () => {
-			expect(appCheckUpdates({curVersion: ''})).resolves.toBe(null);
+		it('buildNumber is not a string', () => {
+			expect(appCheckUpdates({buildNumber: ''})).resolves.toBe(null);
 		});
 
 		it('A promise is reject', async () => {
 			mockIsDevEnv.mockReturnValueOnce(false);
 			mockCheckNeedUpdate.mockRejectedValueOnce(() => new Error());
-			const response = await appCheckUpdates({curVersion: '0.0.1'});
+			const response = await appCheckUpdates({buildNumber: '2050'});
 			expect(response).toEqual(false);
 		});
 
 		it('A promise is reject in debug mode', async () => {
 			mockIsDevEnv.mockReturnValueOnce(true);
 			mockCheckNeedUpdate.mockRejectedValueOnce(() => new Error());
-			const response = await appCheckUpdates({curVersion: '0.0.1'});
+			const response = await appCheckUpdates({buildNumber: '2050'});
 			expect(response).toEqual(false);
 		});
 	});
 
 	describe('Works correctly', () => {
 		it('CheckNeedsUpdate is called', async () => {
-			await appCheckUpdates({curVersion: '0.0.1'});
+			await appCheckUpdates({buildNumber: '2050'});
 
 			expect(mockCheckNeedUpdate).toHaveBeenCalled();
 		});
 
 		it('StartUpdate is called', async () => {
-			await appCheckUpdates({curVersion: '0.0.1'});
+			await appCheckUpdates({buildNumber: '2050'});
 
 			expect(mockStartUpdate).toHaveBeenCalled();
 		});
 
 		it('Is a android device', async () => {
 			Platform.OS = 'android';
-			await appCheckUpdates({curVersion: '0.0.1'});
+			await appCheckUpdates({buildNumber: '2050'});
 
 			expect(mockStartUpdate).toHaveBeenCalled();
 		});
@@ -67,7 +67,7 @@ describe('App check updates funtion', () => {
 				shouldUpdate: false,
 			}));
 
-			await appCheckUpdates({curVersion: '0.0.1'});
+			await appCheckUpdates({buildNumber: '2650'});
 
 			expect(mockStartUpdate).toHaveBeenCalledTimes(0);
 		});
