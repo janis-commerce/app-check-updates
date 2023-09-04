@@ -15,7 +15,7 @@ The minimum required versions for using the package are **react: 17.0.2** and **
 npm install @janiscommerce/app-check-updates
 ```
 
-This package uses [sp-react-native-in-app-updates](https://www.npmjs.com/package/sp-react-native-in-app-updates/v/1.2.0) as a peer dependency, from npm v7 it will be installed automatically, for lower versions you have to install it manually.
+This package uses [sp-react-native-in-app-updates](https://www.npmjs.com/package/sp-react-native-in-app-updates/v/1.2.0) as a peer dependency, you have to install it manually in your application.
 
 ```sh
 npm install sp-react-native-in-app-updates@1.2.0
@@ -39,15 +39,15 @@ const App = () => {
 
 ReactDOM.render(<App />, document.querySelector('#app'));
 ```
+
 ##### Notes:
+
 - You can uses [react-native-device-info](https://github.com/react-native-device-info/react-native-device-info) to get curVersion
 
 - In-app updates are available only to user accounts that own the app. So, make sure the account you’re using has downloaded your app from Google Play at least once before using the account to test in-app updates.
 
-
 ### Parameters
 
-| Options | Type  | Description  |
-|---|---|---|
-| curVersion  | (required) String | The semver of your current app version  |
-
+| Options    | Type              | Description                            |
+| ---------- | ----------------- | -------------------------------------- |
+| curVersion | (required) String | The semver of your current app version |

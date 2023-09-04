@@ -8,7 +8,7 @@ interface IappCheckUpdates {
 }
 
 const appCheckUpdates = async ({curVersion, isDebug = false}: IappCheckUpdates) => {
-	const isNotProductionEnv = isDevEnv();
+	const isDevEnvironment = isDevEnv();
 	try {
 		if (typeof curVersion !== 'string' || !curVersion) {
 			return null;
@@ -29,7 +29,7 @@ const appCheckUpdates = async ({curVersion, isDebug = false}: IappCheckUpdates) 
 		}
 		return true;
 	} catch (error) {
-		if (isNotProductionEnv) {
+		if (isDevEnvironment) {
 			// eslint-disable-next-line no-console
 			console.error(error);
 		}
