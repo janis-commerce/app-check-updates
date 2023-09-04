@@ -8,3 +8,14 @@ export const isDevEnv = () => {
 	const {NODE_ENV} = env;
 	return NODE_ENV !== 'production';
 };
+
+export const customVersionComparator = (newAppV: string, appVersion: string): 0 | 1 | -1 => {
+	if (newAppV > appVersion) {
+		return 1;
+	}
+
+	if (newAppV < appVersion) {
+		return -1;
+	}
+	return 0;
+};

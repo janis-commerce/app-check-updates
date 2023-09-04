@@ -1,6 +1,6 @@
 import {Platform} from 'react-native';
 import SpInAppUpdates, {IAUUpdateKind, StartUpdateOptions} from 'sp-react-native-in-app-updates';
-import {isDevEnv} from './utils';
+import {isDevEnv, customVersionComparator} from './utils';
 
 interface IappCheckUpdates {
 	curVersion: string;
@@ -15,7 +15,10 @@ const appCheckUpdates = async ({curVersion, isDebug = false}: IappCheckUpdates) 
 		}
 		const inAppUpdates = await new SpInAppUpdates(isDebug);
 
-		const storeResponse = await inAppUpdates.checkNeedsUpdate({curVersion});
+		const storeResponse = await inAppUpdates.checkNeedsUpdate({
+			curVersion,
+			customVersionComparator,
+		});
 
 		if (storeResponse?.shouldUpdate) {
 			let updateOptions: StartUpdateOptions = {};
