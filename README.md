@@ -24,12 +24,15 @@ npm install sp-react-native-in-app-updates@1.2.0
 ## Usage Example
 
 ```sh
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View, Text} from 'react-native';
 import appCheckUpdates from '@janiscommerce/app-check-updates';
 
 const App = () => {
-  appCheckUpdates({buildNumber:"2350"});
+	useEffect(() => {
+  		appCheckUpdates({buildNumber:"2350"});
+	}, []);
+
 	return (
 		<View>
 			<Text>app check updates</Text>
