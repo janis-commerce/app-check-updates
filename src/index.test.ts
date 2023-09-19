@@ -5,6 +5,7 @@ import mock from './mock.json';
 
 const mockStartUpdate = jest.fn();
 const mockCheckNeedUpdate = jest.fn().mockImplementation(() => mock);
+const mockAddStatusUpdateListener = jest.fn();
 const mockIsDevEnv = jest.spyOn(utils, 'isDevEnv');
 
 jest.mock('sp-react-native-in-app-updates', () => {
@@ -13,6 +14,7 @@ jest.mock('sp-react-native-in-app-updates', () => {
 		default: jest.fn(() => ({
 			checkNeedsUpdate: mockCheckNeedUpdate,
 			startUpdate: mockStartUpdate,
+			addStatusUpdateListener: mockAddStatusUpdateListener,
 		})),
 		IAUUpdateKind: {
 			FLEXIBLE: 1,
@@ -51,6 +53,7 @@ describe('App check updates funtion', () => {
 		it('StartUpdate is called', async () => {
 			await appCheckUpdates({buildNumber: '2050'});
 
+			expect(mockAddStatusUpdateListener).toHaveBeenCalled();
 			expect(mockStartUpdate).toHaveBeenCalled();
 		});
 
