@@ -3,6 +3,8 @@ name: NPM Publish
 on:
   push:
     tags: ['*']
+    tags-ignore:
+      - ['*.*.*-beta.*']
 
 jobs:
   build:
