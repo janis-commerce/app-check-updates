@@ -1,6 +1,6 @@
 {
 	"name": "@janiscommerce/app-check-updates",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"license": "ISC",
 	"scripts": {
 		"android": "react-native run-android",
