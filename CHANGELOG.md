@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [1.0.4] - 2023-09-27
+
+- Fixed npm publish github action
+
 ## [1.0.3] - 2023-09-27
 
 - Fixed listener to update the app automatically after download
