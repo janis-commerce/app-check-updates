@@ -1,12 +1,11 @@
 import {Platform} from 'react-native';
 import SpInAppUpdates, {IAUUpdateKind, StartUpdateOptions} from 'sp-react-native-in-app-updates';
-import {isDevEnv, customVersionComparator} from './utils';
+import {isDevEnv, customVersionComparator, onStatusUpdate} from './utils';
 
 interface IappCheckUpdates {
 	buildNumber: string;
 	isDebug?: boolean;
 }
-
 const appCheckUpdates = async ({buildNumber, isDebug = false}: IappCheckUpdates) => {
 	const isDevEnvironment = isDevEnv();
 	try {
@@ -28,6 +27,8 @@ const appCheckUpdates = async ({buildNumber, isDebug = false}: IappCheckUpdates)
 					updateType: IAUUpdateKind.FLEXIBLE,
 				};
 			}
+			/* istanbul ignore next */
+			await inAppUpdates.addStatusUpdateListener((status) => onStatusUpdate(status, inAppUpdates));
 			await inAppUpdates.startUpdate(updateOptions);
 		}
 		return true;

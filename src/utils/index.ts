@@ -1,3 +1,4 @@
+import SpInAppUpdates, {IAUInstallStatus, StatusUpdateEvent} from 'sp-react-native-in-app-updates';
 /* istanbul ignore next */
 /**
  * @name isDevEnv
@@ -25,4 +26,10 @@ export const customVersionComparator = (newAppV: string, appVersion: string): 0 
 		return -1;
 	}
 	return 0;
+};
+
+export const onStatusUpdate = async ({status}: StatusUpdateEvent, inAppUpdates: SpInAppUpdates) => {
+	if (status === IAUInstallStatus.DOWNLOADED) {
+		await inAppUpdates.installUpdate();
+	}
 };
