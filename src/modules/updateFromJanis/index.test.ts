@@ -110,7 +110,7 @@ describe('App check updates funtion', () => {
 			});
 			expect(await updateFn()).toEqual(true);
 		});
-		it('works correctly in janisqa environment', async () => {
+		it('works correctly in janisqa environment with invalid callback', async () => {
 			mockCheck.mockResolvedValue(true);
 			const updateFn = updateFromJanis({
 				env: 'janisqa',
@@ -118,17 +118,18 @@ describe('App check updates funtion', () => {
 				currentVersion: '1.1.0',
 				buildNumber: '10',
 			});
-			expect(await updateFn()).toEqual(true);
+			expect(await updateFn(null as any)).toEqual(true);
 		});
-		it('works correctly in janis environment', async () => {
+		it('works correctly in janis environment with valid callback', async () => {
 			mockCheck.mockResolvedValue(true);
+			const callback = () => {};
 			const updateFn = updateFromJanis({
 				env: 'janis',
 				app: 'wms',
 				currentVersion: '1.1.0',
 				buildNumber: '10',
 			});
-			expect(await updateFn()).toEqual(true);
+			expect(await updateFn(callback)).toEqual(true);
 		});
 	});
 });

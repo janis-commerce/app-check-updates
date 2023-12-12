@@ -1,6 +1,6 @@
 import {PermissionsAndroid} from 'react-native';
 import RNFS from 'react-native-fs';
-import {isDevEnv} from '../../utils';
+import {isDevEnv, isString} from '../../utils';
 
 interface IappCheckUpdates {
 	env: 'janisdev' | 'janisqa' | 'janis';
@@ -9,18 +9,27 @@ interface IappCheckUpdates {
 	currentVersion: string;
 }
 
+/**
+ * @name updateFromJanis
+ * @description It is responsible for downloading the apk with the latest version of the app from janis
+ * @param {string} env environment of janis
+ * @param {string} app App name
+ * @param {string} currentVersion new version of the app
+ * @param {string} buildNumber new buildNumber of the app
+ * @returns {boolean} if you can download the new apk correctly
+ */
 const updateFromJanis = ({env, app, currentVersion, buildNumber}: IappCheckUpdates) => {
-	return async () => {
+	return async (DownloadProgressCallback?: () => void) => {
 		const isDevEnvironment = isDevEnv();
 		try {
 			if (
-				typeof env !== 'string' ||
+				!isString(env) ||
 				!env ||
-				typeof app !== 'string' ||
+				!isString(app) ||
 				!app ||
-				typeof buildNumber !== 'string' ||
+				!isString(buildNumber) ||
 				!buildNumber ||
-				typeof currentVersion !== 'string' ||
+				!isString(currentVersion) ||
 				!currentVersion
 			) {
 				return false;
@@ -45,9 +54,14 @@ const updateFromJanis = ({env, app, currentVersion, buildNumber}: IappCheckUpdat
 
 			await RNFS.mkdir(`${RNFS.DownloadDirectoryPath}/${app}-apk`);
 
+			/* istanbul ignore next */
+			const progress =
+				typeof DownloadProgressCallback === 'function' ? DownloadProgressCallback : () => {};
+
 			const response = await RNFS.downloadFile({
 				fromUrl: validUrl,
 				toFile: `${RNFS.DownloadDirectoryPath}/${app}-apk/${app}${envVersion}.${currentVersion}.${buildNumber}.apk`,
+				progress,
 			}).promise;
 
 			return response.statusCode === 200;

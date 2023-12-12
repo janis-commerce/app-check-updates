@@ -4,6 +4,7 @@ import {
 	onStatusUpdate,
 	checkNeedsUpdateInJanis,
 	defaultResponse,
+	isString,
 } from './index';
 import mock from '../../__mocks__/janisMock.json';
 
@@ -22,6 +23,17 @@ jest.mock('sp-react-native-in-app-updates', () => {
 });
 
 describe('utils funtion', () => {
+	describe('isString function', () => {
+		it.each([55, false, true, {}, [], null, NaN, undefined])(
+			'should return false',
+			(invalidValue) => {
+				expect(isString(invalidValue)).toBeFalsy();
+			}
+		);
+		it('return true if a string is passed', () => {
+			expect(isString('validValue')).toBeTruthy();
+		});
+	});
 	describe('customVersionComparator funtion', () => {
 		it('new version is equal to the current version', () => {
 			expect(customVersionComparator('1210', '1210')).toEqual(0);

@@ -12,6 +12,15 @@ export const isDevEnv = () => {
 };
 
 /**
+ * @function isString
+ * @param {any} str - Value to validate.
+ * @description If the type of the argument is a string, return true, otherwise return false.
+ * @returns {bool}
+ */
+
+export const isString = (str: any) => typeof str === 'string';
+
+/**
  * @name customVersionComparator
  * @description compares 2 versions of the app to determine if an update is necessary
  * @param {string} newAppV new version of the App
@@ -29,6 +38,13 @@ export const customVersionComparator = (newAppV: string, appVersion: string): 0 
 	return 0;
 };
 
+/**
+ * @name onStatusUpdate
+ * @description listen to the download status from the store and when it is ready, start the update
+ * @param {object} StatusUpdateEvent download status
+ * @param {object} inAppUpdates update package instance
+ * @returns {void}
+ */
 export const onStatusUpdate = async ({status}: StatusUpdateEvent, inAppUpdates: SpInAppUpdates) => {
 	if (status === IAUInstallStatus.DOWNLOADED) {
 		await inAppUpdates.installUpdate();
@@ -47,6 +63,14 @@ export const defaultResponse = {
 	updateFromJanis: null,
 };
 
+/**
+ * @name checkNeedsUpdateInJanis
+ * @description check if new updates are available on janis
+ * @param {string} env environment of janis
+ * @param {string} app App name
+ * @param {string} buildNumber current version of the App
+ * @returns {object} { hasCheckedUpdate: boolean, shouldUpdateFromJanis: boolean, updateFromJanis: func | null}
+ */
 export const checkNeedsUpdateInJanis = async ({
 	env,
 	app,
@@ -54,11 +78,11 @@ export const checkNeedsUpdateInJanis = async ({
 }: IcheckNeedsUpdateInJanis) => {
 	try {
 		if (
-			typeof buildNumber !== 'string' ||
+			!isString(buildNumber) ||
 			!buildNumber ||
-			typeof env !== 'string' ||
+			!isString(env) ||
 			!env ||
-			typeof app !== 'string' ||
+			!isString(app) ||
 			!app
 		) {
 			return defaultResponse;
@@ -70,9 +94,9 @@ export const checkNeedsUpdateInJanis = async ({
 
 		if (
 			!currentBuildNumber ||
-			typeof currentBuildNumber !== 'string' ||
+			!isString(currentBuildNumber) ||
 			!currentVersion ||
-			typeof currentVersion !== 'string'
+			!isString(currentVersion)
 		) {
 			return defaultResponse;
 		}

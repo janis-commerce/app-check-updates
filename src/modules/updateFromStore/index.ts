@@ -1,6 +1,6 @@
 import {Platform} from 'react-native';
 import SpInAppUpdates, {IAUUpdateKind, StartUpdateOptions} from 'sp-react-native-in-app-updates';
-import {isDevEnv, customVersionComparator, onStatusUpdate} from '../../utils';
+import {isDevEnv, customVersionComparator, onStatusUpdate, isString} from '../../utils';
 
 interface IappCheckUpdates {
 	buildNumber: string;
@@ -9,10 +9,17 @@ interface IappCheckUpdates {
 
 const defaultResponse = {hasCheckedUpdate: false, needCheckInJanis: false};
 
+/**
+ * @name updateFromStore
+ * @description check and download new versions in the store
+ * @param {boolean} isDebug is debug mode
+ * @param {string} buildNumber current buildNumber of the app
+ * @returns {object} { hasCheckedUpdate: boolean, needCheckInJanis: boolean}
+ */
 const updateFromStore = async ({buildNumber, isDebug = false}: IappCheckUpdates) => {
 	const isDevEnvironment = isDevEnv();
 	try {
-		if (typeof buildNumber !== 'string' || !buildNumber) {
+		if (!isString(buildNumber) || !buildNumber) {
 			return defaultResponse;
 		}
 		const inAppUpdates = await new SpInAppUpdates(isDebug);
