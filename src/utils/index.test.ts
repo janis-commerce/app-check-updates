@@ -1,5 +1,11 @@
 import SpInAppUpdates from 'sp-react-native-in-app-updates';
-import {customVersionComparator, onStatusUpdate} from './index';
+import {
+	customVersionComparator,
+	onStatusUpdate,
+	checkNeedsUpdateInJanis,
+	defaultResponse,
+} from './index';
+import mock from '../../__mocks__/janisMock.json';
 
 const mockInstallUpdate = jest.fn();
 
@@ -50,6 +56,96 @@ describe('utils funtion', () => {
 			const inAppUpdates = await new SpInAppUpdates(false);
 			await onStatusUpdate(mockStatus, inAppUpdates);
 			await expect(mockInstallUpdate).toHaveBeenCalledTimes(0);
+		});
+	});
+
+	describe('checkNeedsUpdateInJanis funtion', () => {
+		const env = 'janis';
+		const app = 'picking';
+		const buildNumber = '123';
+		describe('Error handling', () => {
+			it.each(['', 55, false, true, {}, [], null, NaN, undefined])(
+				'should return dedault response',
+				async (invalidValue) => {
+					expect(
+						await checkNeedsUpdateInJanis({
+							env: invalidValue as any,
+							app,
+							buildNumber,
+						})
+					).toEqual(defaultResponse);
+
+					expect(
+						await checkNeedsUpdateInJanis({
+							env,
+							app: invalidValue as any,
+							buildNumber,
+						})
+					).toEqual(defaultResponse);
+
+					expect(
+						await checkNeedsUpdateInJanis({
+							env,
+							app,
+							buildNumber: invalidValue as any,
+						})
+					).toEqual(defaultResponse);
+				}
+			);
+
+			it('The query api returns incorrect parameters', async () => {
+				global.fetch = jest.fn(() =>
+					Promise.resolve({json: () => Promise.resolve({currentVersion: 4123})})
+				) as jest.Mock;
+
+				const response = await checkNeedsUpdateInJanis({
+					env,
+					app,
+					buildNumber: '123',
+				});
+				expect(response).toEqual(defaultResponse);
+			});
+
+			it('query api fails in production', async () => {
+				const originalEnv = process.env;
+				process.env = {
+					...originalEnv,
+					NODE_ENV: 'production',
+				};
+				global.fetch = jest.fn() as jest.Mock;
+
+				const response = await checkNeedsUpdateInJanis({
+					env,
+					app,
+					buildNumber: '123',
+				});
+				expect(response).toEqual(defaultResponse);
+				process.env = originalEnv;
+			});
+
+			it('query api fails in dev env', async () => {
+				global.fetch = jest.fn() as jest.Mock;
+
+				const response = await checkNeedsUpdateInJanis({
+					env,
+					app,
+					buildNumber: '123',
+				});
+				expect(response).toEqual(defaultResponse);
+			});
+		});
+
+		it('new version of the app is available', async () => {
+			global.fetch = jest.fn(() =>
+				Promise.resolve({json: () => Promise.resolve(mock)})
+			) as jest.Mock;
+			const response = await checkNeedsUpdateInJanis({
+				env,
+				app,
+				buildNumber: '123',
+			});
+			expect(response.hasCheckedUpdate).toBeTruthy();
+			expect(response.shouldUpdateFromJanis).toBeTruthy();
 		});
 	});
 });

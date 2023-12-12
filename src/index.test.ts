@@ -1,78 +1,34 @@
-import {Platform} from 'react-native';
 import appCheckUpdates from './index';
 import * as utils from './utils';
-import mock from './mock.json';
+import {defaultResponse} from './utils';
+import * as updateFromStorefn from './modules/updateFromStore';
 
-const mockStartUpdate = jest.fn();
-const mockCheckNeedUpdate = jest.fn().mockImplementation(() => mock);
-const mockAddStatusUpdateListener = jest.fn();
-const mockIsDevEnv = jest.spyOn(utils, 'isDevEnv');
-
-jest.mock('sp-react-native-in-app-updates', () => {
-	return {
-		__esModule: true,
-		default: jest.fn(() => ({
-			checkNeedsUpdate: mockCheckNeedUpdate,
-			startUpdate: mockStartUpdate,
-			addStatusUpdateListener: mockAddStatusUpdateListener,
-		})),
-		IAUUpdateKind: {
-			FLEXIBLE: 1,
-		},
-	};
-});
+const updateFromStore = jest.spyOn(updateFromStorefn, 'default');
+const checkNeedsUpdateInJanis = jest.spyOn(utils, 'checkNeedsUpdateInJanis');
 
 describe('App check updates funtion', () => {
-	describe('Error handling', () => {
-		it('buildNumber is not a string', () => {
-			expect(appCheckUpdates({buildNumber: ''})).resolves.toBe(null);
-		});
-
-		it('A promise is reject', async () => {
-			mockIsDevEnv.mockReturnValueOnce(false);
-			mockCheckNeedUpdate.mockRejectedValueOnce(() => new Error());
-			const response = await appCheckUpdates({buildNumber: '2050'});
-			expect(response).toEqual(false);
-		});
-
-		it('A promise is reject in debug mode', async () => {
-			mockIsDevEnv.mockReturnValueOnce(true);
-			mockCheckNeedUpdate.mockRejectedValueOnce(() => new Error());
-			const response = await appCheckUpdates({buildNumber: '2050'});
-			expect(response).toEqual(false);
-		});
-	});
-
+	const env = 'janis';
+	const app = 'wms';
+	const buildNumber = '123';
 	describe('Works correctly', () => {
-		it('CheckNeedsUpdate is called', async () => {
-			await appCheckUpdates({buildNumber: '2050'});
+		it('could not verify for updates', async () => {
+			updateFromStore.mockResolvedValueOnce({hasCheckedUpdate: false, needCheckInJanis: false});
 
-			expect(mockCheckNeedUpdate).toHaveBeenCalled();
+			expect(await appCheckUpdates({buildNumber, env, app})).toEqual(defaultResponse);
 		});
 
-		it('StartUpdate is called', async () => {
-			await appCheckUpdates({buildNumber: '2050'});
-
-			expect(mockAddStatusUpdateListener).toHaveBeenCalled();
-			expect(mockStartUpdate).toHaveBeenCalled();
+		it('there is no update available in the store', async () => {
+			updateFromStore.mockResolvedValueOnce({hasCheckedUpdate: true, needCheckInJanis: false});
+			expect(await appCheckUpdates({buildNumber, env, app})).toEqual({
+				...defaultResponse,
+				hasCheckedUpdate: true,
+			});
 		});
 
-		it('Is a android device', async () => {
-			Platform.OS = 'android';
-			await appCheckUpdates({buildNumber: '2050'});
-
-			expect(mockStartUpdate).toHaveBeenCalled();
-		});
-
-		it('shouldUpdate is false', async () => {
-			mockCheckNeedUpdate.mockImplementationOnce(() => ({
-				...mock,
-				shouldUpdate: false,
-			}));
-
-			await appCheckUpdates({buildNumber: '2650'});
-
-			expect(mockStartUpdate).toHaveBeenCalledTimes(0);
+		it('there is no access to the store, you must check for janis', async () => {
+			updateFromStore.mockResolvedValueOnce({hasCheckedUpdate: false, needCheckInJanis: true});
+			await appCheckUpdates({buildNumber, env, app});
+			expect(checkNeedsUpdateInJanis).toHaveBeenCalled();
 		});
 	});
 });

@@ -1,44 +1,27 @@
-import {Platform} from 'react-native';
-import SpInAppUpdates, {IAUUpdateKind, StartUpdateOptions} from 'sp-react-native-in-app-updates';
-import {isDevEnv, customVersionComparator, onStatusUpdate} from './utils';
+import updateFromStore from './modules/updateFromStore';
+import {checkNeedsUpdateInJanis, defaultResponse} from './utils';
 
 interface IappCheckUpdates {
 	buildNumber: string;
 	isDebug?: boolean;
+	env: 'janisdev' | 'janisqa' | 'janis';
+	app: 'picking' | 'delivery' | 'wms';
 }
-const appCheckUpdates = async ({buildNumber, isDebug = false}: IappCheckUpdates) => {
-	const isDevEnvironment = isDevEnv();
-	try {
-		if (typeof buildNumber !== 'string' || !buildNumber) {
-			return null;
-		}
-		const inAppUpdates = await new SpInAppUpdates(isDebug);
 
-		const storeResponse = await inAppUpdates.checkNeedsUpdate({
-			curVersion: buildNumber,
-			customVersionComparator,
-		});
+const appCheckUpdates = async ({buildNumber, isDebug = false, env, app}: IappCheckUpdates) => {
+	const {hasCheckedUpdate, needCheckInJanis} = await updateFromStore({buildNumber, isDebug});
 
-		if (storeResponse?.shouldUpdate) {
-			let updateOptions: StartUpdateOptions = {};
-			if (Platform.OS === 'android') {
-				// android only, on iOS the user will be promped to go to your app store page
-				updateOptions = {
-					updateType: IAUUpdateKind.FLEXIBLE,
-				};
-			}
-			/* istanbul ignore next */
-			await inAppUpdates.addStatusUpdateListener((status) => onStatusUpdate(status, inAppUpdates));
-			await inAppUpdates.startUpdate(updateOptions);
-		}
-		return true;
-	} catch (error) {
-		if (isDevEnvironment) {
-			// eslint-disable-next-line no-console
-			console.error(error);
-		}
-		return false;
+	if (hasCheckedUpdate) {
+		return {
+			...defaultResponse,
+			hasCheckedUpdate,
+		};
 	}
+
+	if (needCheckInJanis) {
+		return checkNeedsUpdateInJanis({buildNumber, env, app});
+	}
+	return defaultResponse;
 };
 
 export default appCheckUpdates;
