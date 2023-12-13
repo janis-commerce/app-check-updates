@@ -15,10 +15,18 @@ The minimum required versions for using the package are **react: 17.0.2** and **
 npm install @janiscommerce/app-check-updates
 ```
 
-This package uses [sp-react-native-in-app-updates](https://www.npmjs.com/package/sp-react-native-in-app-updates/v/1.2.0) as a peer dependency, you have to install it manually in your application.
+This package uses peer dependencies that you have to install it manually in your application.
+
+[sp-react-native-in-app-updates](https://www.npmjs.com/package/sp-react-native-in-app-updates/v/1.2.0).
 
 ```sh
 npm install sp-react-native-in-app-updates@1.2.0
+```
+
+[react-native-fs](https://www.npmjs.com/package/react-native-fs).
+
+```sh
+npm i react-native-fs
 ```
 
 ## Usage Example
@@ -29,8 +37,12 @@ import {View, Text} from 'react-native';
 import appCheckUpdates from '@janiscommerce/app-check-updates';
 
 const App = () => {
-	useEffect(() => {
-  		appCheckUpdates({buildNumber:"2350"});
+	useEffect(async () => {
+  		const {hasCheckedUpdate, shouldUpdateFromJanis, updateFromJanis} = await appCheckUpdates({
+			buildNumber: "2350",
+			env: "janisqa",
+			app: 'picking',
+		});
 	}, []);
 
 	return (
@@ -52,3 +64,5 @@ ReactDOM.render(<App />, document.querySelector('#app'));
 | Options    | Type              | Description                            |
 | ---------- | ----------------- | -------------------------------------- |
 | buildNumber | (required) String | The build number of your current app version |
+| env | (required) String | Janis environment where we are working |
+| app | (required) String | Application we work on |
