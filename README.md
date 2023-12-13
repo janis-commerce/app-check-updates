@@ -7,6 +7,8 @@
 
 This package provides the functionality to detect when there is a new version of the app and notify the user
 
+It is checked by two means, in the first instance it is consulted in the store of the corresponding operating system, for cases where you work with apks and do not have access to the store, an api provided bi Janis will be searched, and if you have new versions, a funtion will be provided to download it.
+
 ## Installation
 
 The minimum required versions for using the package are **react: 17.0.2** and **react-native: 0.67.5**.
