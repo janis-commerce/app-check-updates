@@ -50,7 +50,11 @@ const updateFromJanis = ({env, app, currentVersion, buildNumber}: IappCheckUpdat
 			if (!readGranted || !writeGranted) {
 				return false;
 			}
-			const envVersion = env === 'janisdev' ? '-beta' : env === 'janisqa' ? '-qa' : '';
+			const envVersion = {
+				janisdev: '-beta',
+				janisqa: '-qa',
+				janis: '',
+			};
 
 			await RNFS.mkdir(`${RNFS.DownloadDirectoryPath}/${app}-apk`);
 
@@ -60,7 +64,7 @@ const updateFromJanis = ({env, app, currentVersion, buildNumber}: IappCheckUpdat
 
 			const response = await RNFS.downloadFile({
 				fromUrl: validUrl,
-				toFile: `${RNFS.DownloadDirectoryPath}/${app}-apk/${app}${envVersion}.${currentVersion}.${buildNumber}.apk`,
+				toFile: `${RNFS.DownloadDirectoryPath}/${app}-apk/${app}${envVersion[env]}.${currentVersion}.${buildNumber}.apk`,
 				progress,
 			}).promise;
 
