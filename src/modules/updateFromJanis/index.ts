@@ -5,7 +5,7 @@ import {isDevEnv, isString} from '../../utils';
 interface IappCheckUpdates {
 	env: 'janisdev' | 'janisqa' | 'janis';
 	app: 'picking' | 'delivery' | 'wms';
-	newVersion: string;
+	newVersionNumber: string;
 	DownloadProgressCallback?: () => void;
 }
 
@@ -21,12 +21,19 @@ interface IappCheckUpdates {
 const updateFromJanis = async ({
 	env,
 	app,
-	newVersion,
+	newVersionNumber,
 	DownloadProgressCallback,
 }: IappCheckUpdates) => {
 	const isDevEnvironment = isDevEnv();
 	try {
-		if (!isString(env) || !env || !isString(app) || !app || !isString(newVersion) || !newVersion) {
+		if (
+			!isString(env) ||
+			!env ||
+			!isString(app) ||
+			!app ||
+			!isString(newVersionNumber) ||
+			!newVersionNumber
+		) {
 			throw new Error('the parameters are incorrect');
 		}
 
@@ -64,7 +71,7 @@ const updateFromJanis = async ({
 
 		const response = await RNFS.downloadFile({
 			fromUrl: validUrl,
-			toFile: `${RNFS.DownloadDirectoryPath}/${app}-apk/${app}${envVersion[env]}.${newVersion}.apk`,
+			toFile: `${RNFS.DownloadDirectoryPath}/${app}-apk/${app}${envVersion[env]}.${newVersionNumber}.apk`,
 			progress,
 		}).promise;
 

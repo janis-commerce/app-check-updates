@@ -35,7 +35,7 @@ describe('App check updates funtion', () => {
 					updateFromJanis({
 						env: invalidValue as any,
 						app: 'wms',
-						newVersion: '1.1.0.2345',
+						newVersionNumber: '1.1.0.2345',
 					})
 				).rejects.toThrow('the parameters are incorrect');
 
@@ -43,7 +43,7 @@ describe('App check updates funtion', () => {
 					updateFromJanis({
 						env: 'janisdev',
 						app: invalidValue as any,
-						newVersion: '1.1.0.2345',
+						newVersionNumber: '1.1.0.2345',
 					})
 				).rejects.toThrow('the parameters are incorrect');
 
@@ -51,7 +51,7 @@ describe('App check updates funtion', () => {
 					updateFromJanis({
 						env: 'janisdev',
 						app: 'wms',
-						newVersion: invalidValue as any,
+						newVersionNumber: invalidValue as any,
 					})
 				).rejects.toThrow('the parameters are incorrect');
 			}
@@ -64,7 +64,7 @@ describe('App check updates funtion', () => {
 				updateFromJanis({
 					env: 'janisdev',
 					app: 'wms',
-					newVersion: '2.0.0.2345',
+					newVersionNumber: '2.0.0.2345',
 				})
 			).rejects.toThrow('You do not have permissions for external storage');
 		});
@@ -77,7 +77,7 @@ describe('App check updates funtion', () => {
 				updateFromJanis({
 					env: 'janisdev',
 					app: 'wms',
-					newVersion: '2.0.0.2345',
+					newVersionNumber: '2.0.0.2345',
 				})
 			).rejects.toThrow('You do not have permissions for external storage');
 		});
@@ -89,7 +89,7 @@ describe('App check updates funtion', () => {
 				updateFromJanis({
 					env: 'janisdev',
 					app: 'wms',
-					newVersion: '2.0.0.2345',
+					newVersionNumber: '2.0.0.2345',
 				})
 			).rejects.toThrow('Error');
 		});
@@ -100,7 +100,7 @@ describe('App check updates funtion', () => {
 				updateFromJanis({
 					env: 'janisdev',
 					app: 'wms',
-					newVersion: '2.0.0.2345',
+					newVersionNumber: '2.0.0.2345',
 				})
 			).rejects.toThrow('Error');
 		});
@@ -113,7 +113,7 @@ describe('App check updates funtion', () => {
 				updateFromJanis({
 					env: 'janisdev',
 					app: 'wms',
-					newVersion: '2.0.0.2345',
+					newVersionNumber: '2.0.0.2345',
 				})
 			).resolves.toEqual(true);
 		});
@@ -123,7 +123,7 @@ describe('App check updates funtion', () => {
 				updateFromJanis({
 					env: 'janisdev',
 					app: 'wms',
-					newVersion: '2.0.0.2345',
+					newVersionNumber: '2.0.0.2345',
 					DownloadProgressCallback: null as any,
 				})
 			).resolves.toEqual(true);
@@ -135,7 +135,7 @@ describe('App check updates funtion', () => {
 				updateFromJanis({
 					env: 'janisdev',
 					app: 'wms',
-					newVersion: '2.0.0.2345',
+					newVersionNumber: '2.0.0.2345',
 					DownloadProgressCallback,
 				})
 			).resolves.toEqual(true);

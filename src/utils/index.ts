@@ -59,6 +59,7 @@ interface IcheckNeedsUpdateInJanis {
 export const defaultResponse = {
 	hasCheckedUpdate: false,
 	shouldUpdateFromJanis: false,
+	newVersionNumber: '',
 };
 
 /**
@@ -67,7 +68,7 @@ export const defaultResponse = {
  * @param {string} env environment of janis
  * @param {string} app App name
  * @param {string} buildNumber current version of the App
- * @returns {object} { hasCheckedUpdate: boolean, shouldUpdateFromJanis: boolean, updateFromJanis: func | null}
+ * @returns {object} { hasCheckedUpdate: boolean, shouldUpdateFromJanis: boolean, newVersionNumber: string}
  */
 export const checkNeedsUpdateInJanis = async ({
 	env,
@@ -104,6 +105,7 @@ export const checkNeedsUpdateInJanis = async ({
 		return {
 			hasCheckedUpdate: true,
 			shouldUpdateFromJanis: vCompRes > 0,
+			newVersionNumber: `${currentVersion}.${currentBuildNumber}`,
 		};
 	} catch (error) {
 		if (isDevEnv()) {

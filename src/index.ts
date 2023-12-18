@@ -15,7 +15,7 @@ interface IappCheckUpdates {
  * @param {boolean} isDebug is debug mode
  * @param {string} env environment of janis
  * @param {string} app App name
- * @returns {object} { hasCheckedUpdate: boolean, shouldUpdateFromJanis: boolean, updateFromJanis: func | null}
+ * @returns {object} { hasCheckedUpdate: boolean, shouldUpdateFromJanis: boolean, newVersionNumber: string}
  */
 const appCheckUpdates = async ({buildNumber, isDebug = false, env, app}: IappCheckUpdates) => {
 	const {hasCheckedUpdate, needCheckInJanis} = await updateFromStore({buildNumber, isDebug});
