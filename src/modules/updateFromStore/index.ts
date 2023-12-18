@@ -20,7 +20,7 @@ const updateFromStore = async ({buildNumber, isDebug = false}: IappCheckUpdates)
 	const isDevEnvironment = isDevEnv();
 	try {
 		if (!isString(buildNumber) || !buildNumber) {
-			return defaultResponse;
+			throw new Error('the parameters are incorrect');
 		}
 		const inAppUpdates = await new SpInAppUpdates(isDebug);
 

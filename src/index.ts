@@ -1,4 +1,5 @@
 import updateFromStore from './modules/updateFromStore';
+import updateFromJanis from './modules/updateFromJanis';
 import {checkNeedsUpdateInJanis, defaultResponse} from './utils';
 
 interface IappCheckUpdates {
@@ -32,4 +33,4 @@ const appCheckUpdates = async ({buildNumber, isDebug = false, env, app}: IappChe
 	return defaultResponse;
 };
 
-export default appCheckUpdates;
+export {appCheckUpdates, updateFromJanis};
