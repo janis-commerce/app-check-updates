@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0] - 2023-12-19
+
+### Breaking Changes
+
+### Added
+
+- The package now exports two functions
+- ```appCheckUpdates()``` - Updates from playstore if it is available, if not, returns a boolean to indicating if it is necessary to download apk. It also returns the new version number.
+- ```updateFromJanis()``` - Receives environment, app name, and new version number. It download the apk and save in downloads folder.
+
 ## [2.0.0] - 2023-12-14
 
 ### Breaking Changes
