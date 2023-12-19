@@ -1,5 +1,4 @@
 import SpInAppUpdates, {IAUInstallStatus, StatusUpdateEvent} from 'sp-react-native-in-app-updates';
-import updateFromJanis from '../modules/updateFromJanis';
 /* istanbul ignore next */
 /**
  * @name isDevEnv
@@ -60,7 +59,7 @@ interface IcheckNeedsUpdateInJanis {
 export const defaultResponse = {
 	hasCheckedUpdate: false,
 	shouldUpdateFromJanis: false,
-	updateFromJanis: null,
+	newVersionNumber: '',
 };
 
 /**
@@ -69,7 +68,7 @@ export const defaultResponse = {
  * @param {string} env environment of janis
  * @param {string} app App name
  * @param {string} buildNumber current version of the App
- * @returns {object} { hasCheckedUpdate: boolean, shouldUpdateFromJanis: boolean, updateFromJanis: func | null}
+ * @returns {object} { hasCheckedUpdate: boolean, shouldUpdateFromJanis: boolean, newVersionNumber: string}
  */
 export const checkNeedsUpdateInJanis = async ({
 	env,
@@ -85,7 +84,7 @@ export const checkNeedsUpdateInJanis = async ({
 			!isString(app) ||
 			!app
 		) {
-			return defaultResponse;
+			throw new Error('the parameters are incorrect');
 		}
 
 		const validUrl = `https://cdn.mobile.${env}.in/${app}/android/versions.json`;
@@ -98,7 +97,7 @@ export const checkNeedsUpdateInJanis = async ({
 			!currentVersion ||
 			!isString(currentVersion)
 		) {
-			return defaultResponse;
+			throw new Error('API response with incorrect parameters');
 		}
 
 		const vCompRes = customVersionComparator(currentBuildNumber, buildNumber);
@@ -106,12 +105,7 @@ export const checkNeedsUpdateInJanis = async ({
 		return {
 			hasCheckedUpdate: true,
 			shouldUpdateFromJanis: vCompRes > 0,
-			updateFromJanis: updateFromJanis({
-				env,
-				app,
-				currentVersion,
-				buildNumber: currentBuildNumber,
-			}),
+			newVersionNumber: `${currentVersion}.${currentBuildNumber}`,
 		};
 	} catch (error) {
 		if (isDevEnv()) {

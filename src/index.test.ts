@@ -1,4 +1,4 @@
-import appCheckUpdates from './index';
+import {appCheckUpdates} from './index';
 import * as utils from './utils';
 import {defaultResponse} from './utils';
 import * as updateFromStorefn from './modules/updateFromStore';
