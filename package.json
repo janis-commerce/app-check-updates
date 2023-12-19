@@ -32,8 +32,8 @@
 		"@types/react": "^17"
 	},
 	"peerDependencies": {
-		"react": ">=17.0.2 <=18.2.0",
-		"react-native": ">=0.67.5 <=0.71.5",
+		"react": ">=17.0.2",
+		"react-native": ">=0.67.5",
 		"sp-react-native-in-app-updates": "1.2.0",
 		"react-native-fs": ">=2.20.0"
 	},

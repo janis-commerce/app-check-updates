@@ -7,7 +7,29 @@
 
 This package provides the functionality to detect when there is a new version of the app and notify the user
 
-It is checked by two means, in the first instance it is consulted in the store of the corresponding operating system, for cases where you work with apks and do not have access to the store, an api provided bi Janis will be searched, and if you have new versions, a funtion will be provided to download it.
+## appCheckUpdates
+
+It is checked by two means, in the first instance it is consulted in the store of the corresponding operating system, for cases where you work with apks and do not have access to the store, an api provided bi Janis will be searched, and if you have new versions, will additionally return the new version number.
+
+### Parameters
+
+| Options    | Type              | Description                            |
+| ---------- | ----------------- | -------------------------------------- |
+| buildNumber | (required) String | The build number of your current app version |
+| env | (required) String | Janis environment where we are working |
+| app | (required) String | Application we work on |
+
+## updateFromJanis
+
+This function is responsible for downloading the apk of the new version using an api provided by janis.
+
+### Parameters
+
+| Options    | Type              | Description                            |
+| ---------- | ----------------- | -------------------------------------- |
+| newVersionNumber | (required) String | The new version number of the app |
+| env | (required) String | Janis environment where we are working |
+| app | (required) String | Application we work on |
 
 ## Installation
 
@@ -36,15 +58,22 @@ npm i react-native-fs
 ```sh
 import React, {useEffect} from 'react';
 import {View, Text} from 'react-native';
-import appCheckUpdates from '@janiscommerce/app-check-updates';
+import {appCheckUpdates, updateFromJanis} from '@janiscommerce/app-check-updates';
 
 const App = () => {
 	useEffect(async () => {
-  		const {hasCheckedUpdate, shouldUpdateFromJanis, updateFromJanis} = await appCheckUpdates({
+  		const {hasCheckedUpdate, shouldUpdateFromJanis, newVersionNumber} = await appCheckUpdates({
 			buildNumber: "2350",
 			env: "janisqa",
 			app: 'picking',
 		});
+		if (shouldUpdateFromJanis) {
+			await updateFromJanis({
+				env: "janisqa",
+				app: 'picking',
+				newVersionNumber: newVersionNumber,
+			});
+		}
 	}, []);
 
 	return (
@@ -56,15 +85,3 @@ const App = () => {
 
 ReactDOM.render(<App />, document.querySelector('#app'));
 ```
-
-##### Notes:
-
-- In-app updates are available only to user accounts that own the app. So, make sure the account you’re using has downloaded your app from Google Play at least once before using the account to test in-app updates.
-
-### Parameters
-
-| Options    | Type              | Description                            |
-| ---------- | ----------------- | -------------------------------------- |
-| buildNumber | (required) String | The build number of your current app version |
-| env | (required) String | Janis environment where we are working |
-| app | (required) String | Application we work on |
