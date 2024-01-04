@@ -1,4 +1,3 @@
-// import {Platform} from 'react-native';
 import updateFromJanis from './index';
 import * as utils from '../../utils';
 
