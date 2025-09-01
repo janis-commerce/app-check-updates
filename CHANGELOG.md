@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.0-beta.1] - 2025-09-01
+
+### Changed
+
+- added storage folder removal before app new version download.
+
 ## [3.0.1] - 2024-01-04
 
 ### Fixed
@@ -20,21 +26,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - The package now exports two functions
-- ```appCheckUpdates()``` - Updates from playstore if it is available, if not, returns a boolean to indicating if it is necessary to download apk. It also returns the new version number.
-- ```updateFromJanis()``` - Receives environment, app name, and new version number. It download the apk and save in downloads folder.
+- `appCheckUpdates()` - Updates from playstore if it is available, if not, returns a boolean to indicating if it is necessary to download apk. It also returns the new version number.
+- `updateFromJanis()` - Receives environment, app name, and new version number. It download the apk and save in downloads folder.
 
 ## [2.0.0] - 2023-12-14
 
 ### Breaking Changes
 
-### Added 
+### Added
 
 - The main function exported appCheckUpdates(), now returns an object instead of a boolean value.
 - The object properties are the following:
-* ```hasCheckedUpdate```: ```boolean``` - Necessary to know if it was correctly checked if there is a new version.
-* ```shouldUpdateFromJanis```: ```boolean``` - Indicates if the update from playstore wasn't able, and there is a new apk available in janis service.
-* ```updateFromJanis```: ```null``` | ```() => void``` - The function to download the apk and save it in Downloads/ folder.
 
+* `hasCheckedUpdate`: `boolean` - Necessary to know if it was correctly checked if there is a new version.
+* `shouldUpdateFromJanis`: `boolean` - Indicates if the update from playstore wasn't able, and there is a new apk available in janis service.
+* `updateFromJanis`: `null` | `() => void` - The function to download the apk and save it in Downloads/ folder.
 
 ## [1.1.0] - 2023-12-13
 

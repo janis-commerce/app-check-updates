@@ -2,43 +2,68 @@ name: NPM Publish
 
 on:
   push:
-    tags: ['*']
+    tags:
+      - '*'
+      - '!*-beta*'
+      - '!*-alpha*'
+      - '!*-rc*'
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 16.x
-      - run: npm install
-      - run: npm run test:coverage
+          node-version: '18'
+          cache: 'npm'
+          registry-url: https://registry.npmjs.org/
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linting
+        run: npm run lint
 
   publish-npm:
     needs: build
     runs-on: ubuntu-latest
-
+    environment: production
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 16.x
+          node-version: '18'
+          cache: 'npm'
           registry-url: https://registry.npmjs.org/
-      - run: npm install
-      - run: npm run build
-      - run: npm publish --access public
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Publish to NPM
+        run: npm publish --access public
         env:
-          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+          NODE_AUTH_TOKEN: ${{ secrets.npm_token }}
 
   send-slack-message:
     needs: publish-npm
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 14
-      - run: bash ./scripts/release-notes.sh
+          node-version: '18'
+
+      - name: Send release notification
+        run: bash ./scripts/release-notes.sh
         env:
-          RELEASE_SLACK_WEBHOOK_URL: ${{secrets.RELEASE_SLACK_WEBHOOK_URL}}
+          RELEASE_SLACK_WEBHOOK_URL: ${{ secrets.RELEASE_SLACK_WEBHOOK_URL }}

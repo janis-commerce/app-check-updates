@@ -1,4 +1,5 @@
 import SpInAppUpdates, {IAUInstallStatus, StatusUpdateEvent} from 'sp-react-native-in-app-updates';
+import Crashlytics from './crashlytics';
 /* istanbul ignore next */
 /**
  * @name isDevEnv
@@ -107,11 +108,12 @@ export const checkNeedsUpdateInJanis = async ({
 			shouldUpdateFromJanis: vCompRes > 0,
 			newVersionNumber: `${currentVersion}.${currentBuildNumber}`,
 		};
-	} catch (error) {
+	} catch (error: any) {
 		if (isDevEnv()) {
 			// eslint-disable-next-line no-console
 			console.error(error);
 		}
+		Crashlytics.recordError(new Error(error.message), 'error checking update from janis');
 		return defaultResponse;
 	}
 };

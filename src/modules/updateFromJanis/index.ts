@@ -1,6 +1,7 @@
 import {PermissionsAndroid, Platform} from 'react-native';
 import RNFS from 'react-native-fs';
 import {isDevEnv, isString} from '../../utils';
+import Crashlytics from '../../utils/crashlytics';
 
 interface IappCheckUpdates {
 	env: 'janisdev' | 'janisqa' | 'janis';
@@ -26,6 +27,7 @@ const updateFromJanis = async ({
 }: IappCheckUpdates) => {
 	const isDevEnvironment = isDevEnv();
 	try {
+		Crashlytics.log('janis api update started', {env, app, newVersionNumber});
 		if (
 			!isString(env) ||
 			!env ||
@@ -63,7 +65,14 @@ const updateFromJanis = async ({
 			janis: '',
 		};
 
-		await RNFS.mkdir(`${RNFS.DownloadDirectoryPath}/${app}-apk`);
+		const targetDir = `${RNFS.DownloadDirectoryPath}/${app}-apk`;
+		const dirExists = await RNFS.exists(targetDir);
+
+		if (dirExists) {
+			await RNFS.unlink(targetDir);
+		}
+
+		await RNFS.mkdir(targetDir);
 
 		/* istanbul ignore next */
 		const progress =
@@ -76,11 +85,13 @@ const updateFromJanis = async ({
 		}).promise;
 
 		return response.statusCode === 200;
-	} catch (error) {
+	} catch (error: any) {
 		if (isDevEnvironment) {
 			// eslint-disable-next-line no-console
 			console.error(error);
 		}
+		Crashlytics.recordError(error, 'error updating app from janis');
+
 		return Promise.reject(error);
 	}
 };

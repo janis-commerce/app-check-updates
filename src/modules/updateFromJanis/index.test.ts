@@ -1,10 +1,13 @@
 import updateFromJanis from './index';
+import RNFS from 'react-native-fs';
 import * as utils from '../../utils';
 
 const mockIsDevEnv = jest.spyOn(utils, 'isDevEnv');
 
 const mockRequestMultiple = jest.fn(() => new Promise((resolve) => resolve(true)));
 const mockCheck = jest.fn();
+const RNFSExistsSpy = jest.spyOn(RNFS, 'exists');
+const RNFSUnlinkSpy = jest.spyOn(RNFS, 'unlink');
 
 jest.mock('react-native//Libraries/PermissionsAndroid/PermissionsAndroid', () => {
 	const PermissionsAndroid = jest.requireActual(
@@ -117,6 +120,8 @@ describe('App check updates funtion', () => {
 			).resolves.toEqual(true);
 		});
 		it('works correctly in janisqa environment with invalid callback', async () => {
+			RNFSExistsSpy.mockResolvedValueOnce(true);
+			RNFSUnlinkSpy.mockResolvedValueOnce(undefined);
 			mockCheck.mockResolvedValue(true);
 			await expect(
 				updateFromJanis({

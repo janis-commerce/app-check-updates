@@ -55,3 +55,19 @@ jest.mock('react-native-fs', () => ({
 	LibraryDirectoryPath: jest.fn(),
 	PicturesDirectoryPath: jest.fn(),
 }));
+
+jest.mock('@janiscommerce/app-crashlytics', () => ({
+	__esModule: true,
+	default: jest.fn(() => ({
+		log: jest.fn(),
+		recordError: jest.fn(),
+	})),
+}));
+
+jest.mock('../src/utils/crashlytics/index.ts', () => ({
+	__esModule: true,
+	default: {
+		log: jest.fn(),
+		recordError: jest.fn(),
+	},
+}));

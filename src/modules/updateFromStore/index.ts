@@ -1,6 +1,7 @@
 import {Platform} from 'react-native';
 import SpInAppUpdates, {IAUUpdateKind, StartUpdateOptions} from 'sp-react-native-in-app-updates';
 import {isDevEnv, customVersionComparator, onStatusUpdate, isString} from '../../utils';
+import Crashlytics from '../../utils/crashlytics';
 
 interface IappCheckUpdates {
 	buildNumber: string;
@@ -19,6 +20,7 @@ const defaultResponse = {hasCheckedUpdate: false, needCheckInJanis: false};
 const updateFromStore = async ({buildNumber, isDebug = false}: IappCheckUpdates) => {
 	const isDevEnvironment = isDevEnv();
 	try {
+		Crashlytics.log('play store update started', {buildNumber});
 		if (!isString(buildNumber) || !buildNumber) {
 			throw new Error('the parameters are incorrect');
 		}
@@ -45,11 +47,12 @@ const updateFromStore = async ({buildNumber, isDebug = false}: IappCheckUpdates)
 			...defaultResponse,
 			hasCheckedUpdate: true,
 		};
-	} catch (error) {
+	} catch (error: unknown) {
 		if (isDevEnvironment) {
 			// eslint-disable-next-line no-console
 			console.error(error);
 		}
+		Crashlytics.recordError(error, 'error updating app from store');
 		if (error instanceof Error && error.message.includes('checkNeedsUpdate')) {
 			return {...defaultResponse, needCheckInJanis: true};
 		}
