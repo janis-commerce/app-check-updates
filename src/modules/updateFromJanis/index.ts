@@ -27,7 +27,7 @@ const updateFromJanis = async ({
 }: IappCheckUpdates) => {
 	const isDevEnvironment = isDevEnv();
 	try {
-		Crashlytics.log('janis api update started', {env, app, newVersionNumber});
+		Crashlytics.log('updateFromJanis started', {env, app, newVersionNumber});
 		if (
 			!isString(env) ||
 			!env ||
@@ -85,12 +85,12 @@ const updateFromJanis = async ({
 		}).promise;
 
 		return response.statusCode === 200;
-	} catch (error: any) {
+	} catch (error: unknown) {
 		if (isDevEnvironment) {
 			// eslint-disable-next-line no-console
 			console.error(error);
 		}
-		Crashlytics.recordError(error, 'error updating app from janis');
+		Crashlytics.recordError(error, 'error updating app by updateFromJanis');
 
 		return Promise.reject(error);
 	}

@@ -20,7 +20,7 @@ const defaultResponse = {hasCheckedUpdate: false, needCheckInJanis: false};
 const updateFromStore = async ({buildNumber, isDebug = false}: IappCheckUpdates) => {
 	const isDevEnvironment = isDevEnv();
 	try {
-		Crashlytics.log('play store update started', {buildNumber});
+		Crashlytics.log('updateFromStore started', {buildNumber});
 		if (!isString(buildNumber) || !buildNumber) {
 			throw new Error('the parameters are incorrect');
 		}
@@ -52,7 +52,7 @@ const updateFromStore = async ({buildNumber, isDebug = false}: IappCheckUpdates)
 			// eslint-disable-next-line no-console
 			console.error(error);
 		}
-		Crashlytics.recordError(error, 'error updating app from store');
+		Crashlytics.recordError(error, 'error updating app by updateFromStore');
 		if (error instanceof Error && error.message.includes('checkNeedsUpdate')) {
 			return {...defaultResponse, needCheckInJanis: true};
 		}
