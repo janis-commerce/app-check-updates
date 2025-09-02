@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.0-beta.4] - 2025-09-02
+
+- updated crashlytics logs report and build gradle
+
 ## [3.1.0-beta.3] - 2025-09-01
 
 ### Changed
