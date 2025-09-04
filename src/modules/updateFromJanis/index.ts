@@ -27,7 +27,7 @@ const updateFromJanis = async ({
 }: IappCheckUpdates) => {
 	const isDevEnvironment = isDevEnv();
 	try {
-		Crashlytics.log('updateFromJanis started', {env, app, newVersionNumber});
+		Crashlytics.log('updateFromJanis:', {env, app, newVersionNumber});
 		if (
 			!isString(env) ||
 			!env ||

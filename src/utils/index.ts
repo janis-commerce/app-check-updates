@@ -87,7 +87,7 @@ export const checkNeedsUpdateInJanis = async ({
 		) {
 			throw new Error('the parameters are incorrect');
 		}
-
+		Crashlytics.log('checkNeedsUpdateInJanis:', {env, app, buildNumber});
 		const validUrl = `https://cdn.mobile.${env}.in/${app}/android/versions.json`;
 		const response = await fetch(validUrl);
 		const {currentBuildNumber, currentVersion} = await response.json();

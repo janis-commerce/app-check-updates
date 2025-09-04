@@ -20,7 +20,7 @@ const defaultResponse = {hasCheckedUpdate: false, needCheckInJanis: false};
 const updateFromStore = async ({buildNumber, isDebug = false}: IappCheckUpdates) => {
 	const isDevEnvironment = isDevEnv();
 	try {
-		Crashlytics.log('updateFromStore started', {buildNumber});
+		Crashlytics.log('updateFromStore:', {buildNumber});
 		if (!isString(buildNumber) || !buildNumber) {
 			throw new Error('the parameters are incorrect');
 		}
