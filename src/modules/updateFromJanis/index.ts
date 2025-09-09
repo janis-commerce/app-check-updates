@@ -10,6 +10,12 @@ interface IappCheckUpdates {
 	DownloadProgressCallback?: () => void;
 }
 
+const envMapper = {
+	janisdev: '-beta',
+	janisqa: '-qa',
+	janis: '',
+};
+
 /**
  * @name updateFromJanis
  * @description It is responsible for downloading the apk with the latest version of the app from janis
@@ -59,13 +65,8 @@ const updateFromJanis = async ({
 			}
 		}
 
-		const envVersion = {
-			janisdev: '-beta',
-			janisqa: '-qa',
-			janis: '',
-		};
-
-		const targetDir = `${RNFS.DownloadDirectoryPath}/${app}-apk`;
+		const targetEnv = envMapper[env];
+		const targetDir = `${RNFS.DownloadDirectoryPath}/${app}${targetEnv}-apk`;
 		const dirExists = await RNFS.exists(targetDir);
 
 		if (dirExists) {
@@ -75,13 +76,13 @@ const updateFromJanis = async ({
 		await RNFS.mkdir(targetDir);
 
 		/* istanbul ignore next */
-		const progress =
+		const downloadProgressHandler =
 			typeof DownloadProgressCallback === 'function' ? DownloadProgressCallback : () => {};
 
 		const response = await RNFS.downloadFile({
 			fromUrl: validUrl,
-			toFile: `${RNFS.DownloadDirectoryPath}/${app}-apk/${app}${envVersion[env]}.${newVersionNumber}.apk`,
-			progress,
+			toFile: `${targetDir}/${app}${targetEnv}.${newVersionNumber}.apk`,
+			progress: downloadProgressHandler,
 		}).promise;
 
 		return response.statusCode === 200;

@@ -125,7 +125,7 @@ describe('App check updates funtion', () => {
 			mockCheck.mockResolvedValue(true);
 			await expect(
 				updateFromJanis({
-					env: 'janisdev',
+					env: 'janisqa',
 					app: 'wms',
 					newVersionNumber: '2.0.0.2345',
 					DownloadProgressCallback: null as any,
@@ -137,7 +137,7 @@ describe('App check updates funtion', () => {
 			const DownloadProgressCallback = () => {};
 			await expect(
 				updateFromJanis({
-					env: 'janisdev',
+					env: 'janis',
 					app: 'wms',
 					newVersionNumber: '2.0.0.2345',
 					DownloadProgressCallback,
