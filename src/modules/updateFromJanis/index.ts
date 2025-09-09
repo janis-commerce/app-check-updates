@@ -14,7 +14,7 @@ const envMapper = {
 	janisdev: '-beta',
 	janisqa: '-qa',
 	janis: '',
-};
+} as const;
 
 /**
  * @name updateFromJanis
