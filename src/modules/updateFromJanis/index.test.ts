@@ -1,16 +1,19 @@
+// Mock para el módulo nativo ApkInstaller - DEBE estar antes de las importaciones
+jest.mock('react-native', () => {
+	const RN = jest.requireActual('react-native');
+	RN.NativeModules.ApkInstaller = {
+		install: jest.fn(() => Promise.resolve(true)),
+	};
+	return RN;
+});
+
 import {NativeModules} from 'react-native';
 import RNFS from 'react-native-fs';
 import * as utils from '../../utils';
+import updateFromJanis from './index';
 
 const mockIsDevEnv = jest.spyOn(utils, 'isDevEnv');
-
-// Mock para nuestro módulo nativo ApkInstaller
-const mockInstall = jest.fn(() => Promise.resolve(true));
-NativeModules.ApkInstaller = {
-	install: mockInstall,
-};
-
-import updateFromJanis from './index';
+const mockInstall = NativeModules.ApkInstaller.install as jest.Mock;
 
 const mockRequestMultiple = jest.fn(() => new Promise((resolve) => resolve(true)));
 const mockCheck = jest.fn();
@@ -39,6 +42,7 @@ jest.mock('react-native/Libraries/Utilities/Platform', () => {
 describe('App check updates funtion', () => {
 	beforeEach(() => {
 		mockInstall.mockClear();
+		mockInstall.mockResolvedValue(true);
 	});
 	describe('Error handling', () => {
 		it.each(['', 5, [], {}, jest.fn(), undefined, null, NaN])(
@@ -122,6 +126,7 @@ describe('App check updates funtion', () => {
 	describe('Works correctly', () => {
 		it('works correctly in janisdev environment without asking permissions', async () => {
 			mockVersion.mockReturnValueOnce(33);
+			mockCheck.mockResolvedValue(true);
 			await expect(
 				updateFromJanis({
 					env: 'janisdev',
@@ -131,6 +136,7 @@ describe('App check updates funtion', () => {
 			).resolves.toEqual(true);
 		});
 		it('works correctly in janisqa environment with invalid callback', async () => {
+			mockVersion.mockReturnValueOnce(14);
 			RNFSExistsSpy.mockResolvedValueOnce(true);
 			RNFSUnlinkSpy.mockResolvedValueOnce(undefined);
 			mockCheck.mockResolvedValue(true);
@@ -144,6 +150,7 @@ describe('App check updates funtion', () => {
 			).resolves.toEqual(true);
 		});
 		it('works correctly in janis environment with valid callback', async () => {
+			mockVersion.mockReturnValueOnce(14);
 			mockCheck.mockResolvedValue(true);
 			const DownloadProgressCallback = () => {};
 			await expect(
@@ -158,7 +165,7 @@ describe('App check updates funtion', () => {
 
 		it('installs APK automatically after successful download', async () => {
 			mockVersion.mockReturnValueOnce(33);
-			mockInstall.mockResolvedValueOnce(undefined);
+			mockInstall.mockResolvedValueOnce(true);
 
 			const result = await updateFromJanis({
 				env: 'janisdev',
@@ -183,6 +190,42 @@ describe('App check updates funtion', () => {
 
 			// Aunque la instalación falle, retornamos true porque la descarga fue exitosa
 			expect(result).toEqual(true);
+		});
+
+		it('returns true and logs when APK installation fails in dev environment', async () => {
+			mockVersion.mockReturnValueOnce(33);
+			mockInstall.mockRejectedValueOnce(new Error('Installation failed'));
+			mockIsDevEnv.mockReturnValueOnce(true);
+
+			const result = await updateFromJanis({
+				env: 'janisdev',
+				app: 'delivery',
+				newVersionNumber: '4.0.0.1234',
+			});
+
+			expect(result).toEqual(true);
+		});
+
+		it('returns false when download fails (statusCode !== 200)', async () => {
+			mockVersion.mockReturnValueOnce(33);
+			mockCheck.mockResolvedValue(true);
+
+			// Mock RNFS.downloadFile para que retorne un statusCode diferente de 200
+			const originalDownloadFile = RNFS.downloadFile;
+			RNFS.downloadFile = jest.fn(() => ({
+				promise: Promise.resolve({statusCode: 404}),
+			})) as any;
+
+			const result = await updateFromJanis({
+				env: 'janisdev',
+				app: 'wms',
+				newVersionNumber: '2.0.0.2345',
+			});
+
+			expect(result).toEqual(false);
+
+			// Restaurar el mock original
+			RNFS.downloadFile = originalDownloadFile;
 		});
 	});
 });
