@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Native Android module for automatic APK installation after download
+- Automatic installation flow: download, uninstall old version, and install new APK transparently
+- React Native autolinking configuration for native module integration
+
+### Changed
+
+- Removed dependency on external APK installer libraries (obsolete/deprecated packages)
+- Updated Android library structure with custom native module implementation
+- Improved error handling during APK installation process
+
+### Technical
+
+- Added `ApkInstallerModule.java` - Native Android module for APK installation
+- Added `ApkInstallerPackage.java` - Package registration for React Native autolinking
+- Added `react-native.config.js` - Autolinking configuration
+- Updated `AndroidManifest.xml` - Added `REQUEST_INSTALL_PACKAGES` permission
+- Updated README with FileProvider configuration instructions for consuming apps
+
 ## [3.2.0] - 2025-09-08
 
 ### Changed

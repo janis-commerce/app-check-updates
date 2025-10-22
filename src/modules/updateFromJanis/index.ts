@@ -1,7 +1,9 @@
-import {PermissionsAndroid, Platform} from 'react-native';
+import {PermissionsAndroid, Platform, NativeModules} from 'react-native';
 import RNFS from 'react-native-fs';
 import {isDevEnv, isString} from '../../utils';
 import Crashlytics from '../../utils/crashlytics';
+
+const {ApkInstaller} = NativeModules;
 
 interface IappCheckUpdates {
 	env: 'janisdev' | 'janisqa' | 'janis';
@@ -46,6 +48,7 @@ const updateFromJanis = async ({
 		}
 
 		const validUrl = `https://mobile.${env}.in/api/download/${app}/android/latest`;
+
 		const apiVersion = Platform.Version;
 
 		if (Number(apiVersion) < 33) {
@@ -79,13 +82,33 @@ const updateFromJanis = async ({
 		const downloadProgressHandler =
 			typeof DownloadProgressCallback === 'function' ? DownloadProgressCallback : () => {};
 
+		const apkPath = `${targetDir}/${app}${targetEnv}.${newVersionNumber}.apk`;
+
 		const response = await RNFS.downloadFile({
 			fromUrl: validUrl,
-			toFile: `${targetDir}/${app}${targetEnv}.${newVersionNumber}.apk`,
+			toFile: apkPath,
 			progress: downloadProgressHandler,
 		}).promise;
 
-		return response.statusCode === 200;
+		if (response.statusCode === 200) {
+			// Instalar automáticamente la APK descargada
+			try {
+				await ApkInstaller.install(apkPath);
+				Crashlytics.log('APK installation started successfully');
+				return true;
+			} catch (installError: unknown) {
+				Crashlytics.recordError(installError, 'error installing APK');
+				// Si falla la instalación, aún retornamos true porque la descarga fue exitosa
+				// El usuario puede instalar manualmente desde los archivos descargados
+				if (isDevEnvironment) {
+					// eslint-disable-next-line no-console
+					console.error('Install error:', installError);
+				}
+				return true;
+			}
+		}
+
+		return false;
 	} catch (error: unknown) {
 		if (isDevEnvironment) {
 			// eslint-disable-next-line no-console

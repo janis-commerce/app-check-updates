@@ -21,7 +21,7 @@ It is checked by two means, in the first instance it is consulted in the store o
 
 ## updateFromJanis
 
-This function is responsible for downloading the apk of the new version using an api provided by janis.
+This function is responsible for downloading the apk of the new version using an api provided by janis and **automatically installing it** on the device.
 
 ### Parameters
 
@@ -31,6 +31,17 @@ This function is responsible for downloading the apk of the new version using an
 | env | (required) String | Janis environment where we are working |
 | app | (required) String | Application we work on |
 
+### Automatic Installation
+
+Since version 3.3.0, `updateFromJanis` automatically triggers the APK installation after a successful download. The installation process:
+
+1. Downloads the APK from Janis server
+2. Automatically opens Android's installer
+3. User only needs to tap "Install"
+4. Android handles the app replacement automatically
+
+**Note:** If the installation fails (e.g., due to permissions), the APK remains downloaded and the user can install it manually from their device's file manager.
+
 ## Installation
 
 The minimum required versions for using the package are **react: 17.0.2** and **react-native: 0.67.5**.
@@ -39,19 +50,90 @@ The minimum required versions for using the package are **react: 17.0.2** and **
 npm install @janiscommerce/app-check-updates
 ```
 
-This package uses peer dependencies that you have to install it manually in your application.
+### Peer Dependencies
 
-[sp-react-native-in-app-updates](https://www.npmjs.com/package/sp-react-native-in-app-updates/v/1.2.0).
+This package requires the following peer dependencies to be installed manually in your application:
+
+#### 1. [sp-react-native-in-app-updates](https://www.npmjs.com/package/sp-react-native-in-app-updates/v/1.2.0)
 
 ```sh
 npm install sp-react-native-in-app-updates@1.2.0
 ```
 
-[react-native-fs](https://www.npmjs.com/package/react-native-fs).
+#### 2. [react-native-fs](https://www.npmjs.com/package/react-native-fs)
 
 ```sh
-npm i react-native-fs
+npm install react-native-fs
 ```
+
+### Android Configuration
+
+This package includes a **native Android module** for automatic APK installation. The native module is automatically included when you install the package - no additional dependencies required!
+
+To enable automatic APK installation, you need to configure the following in your Android app:
+
+#### 1. Add Permission
+
+Add the installation permission to your `android/app/src/main/AndroidManifest.xml`:
+
+```xml
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Required for automatic APK installation (Android 8.0+) -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
+    <application>
+        <!-- ... -->
+    </application>
+</manifest>
+```
+
+#### 2. Configure FileProvider
+
+Add the FileProvider inside the `<application>` tag in `android/app/src/main/AndroidManifest.xml`:
+
+```xml
+<application>
+    <!-- Other configurations -->
+
+    <!-- FileProvider for APK installation (Android 7.0+) -->
+    <provider
+        android:name="androidx.core.content.FileProvider"
+        android:authorities="${applicationId}.fileprovider"
+        android:exported="false"
+        android:grantUriPermissions="true">
+        <meta-data
+            android:name="android.support.FILE_PROVIDER_PATHS"
+            android:resource="@xml/file_paths" />
+    </provider>
+</application>
+```
+
+#### 3. Create File Paths Configuration
+
+Create the file `android/app/src/main/res/xml/file_paths.xml`:
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <external-path name="external_files" path="." />
+    <external-path name="downloads" path="Download/" />
+</paths>
+```
+
+#### 4. Rebuild Your App
+
+After configuration, rebuild your Android app:
+
+```sh
+cd android && ./gradlew clean && cd ..
+npm run android
+```
+
+**Important Notes:**
+- This package includes its own native Android module - no external APK installer libraries needed!
+- The FileProvider and permissions are **automatically merged** from this package's AndroidManifest.
+- On Android 8.0 (API level 26) and higher, users must explicitly grant permission to install apps from unknown sources. The system will prompt the user automatically when the installation is triggered.
+- The FileProvider configuration is required for Android 7.0+ to securely share the APK file with the system installer.
 
 ## Usage Example
 

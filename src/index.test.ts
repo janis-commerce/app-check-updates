@@ -1,7 +1,14 @@
-import {appCheckUpdates} from './index';
+import {NativeModules} from 'react-native';
 import * as utils from './utils';
 import {defaultResponse} from './utils';
 import * as updateFromStorefn from './modules/updateFromStore';
+
+// Mock para nuestro módulo nativo ApkInstaller
+NativeModules.ApkInstaller = {
+	install: jest.fn(() => Promise.resolve(true)),
+};
+
+import {appCheckUpdates} from './index';
 
 const updateFromStore = jest.spyOn(updateFromStorefn, 'default');
 const checkNeedsUpdateInJanis = jest.spyOn(utils, 'checkNeedsUpdateInJanis');

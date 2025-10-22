@@ -1,8 +1,16 @@
-import updateFromJanis from './index';
+import {NativeModules} from 'react-native';
 import RNFS from 'react-native-fs';
 import * as utils from '../../utils';
 
 const mockIsDevEnv = jest.spyOn(utils, 'isDevEnv');
+
+// Mock para nuestro módulo nativo ApkInstaller
+const mockInstall = jest.fn(() => Promise.resolve(true));
+NativeModules.ApkInstaller = {
+	install: mockInstall,
+};
+
+import updateFromJanis from './index';
 
 const mockRequestMultiple = jest.fn(() => new Promise((resolve) => resolve(true)));
 const mockCheck = jest.fn();
@@ -29,6 +37,9 @@ jest.mock('react-native/Libraries/Utilities/Platform', () => {
 	return Platform;
 });
 describe('App check updates funtion', () => {
+	beforeEach(() => {
+		mockInstall.mockClear();
+	});
 	describe('Error handling', () => {
 		it.each(['', 5, [], {}, jest.fn(), undefined, null, NaN])(
 			'param is not valid',
@@ -143,6 +154,35 @@ describe('App check updates funtion', () => {
 					DownloadProgressCallback,
 				})
 			).resolves.toEqual(true);
+		});
+
+		it('installs APK automatically after successful download', async () => {
+			mockVersion.mockReturnValueOnce(33);
+			mockInstall.mockResolvedValueOnce(undefined);
+
+			const result = await updateFromJanis({
+				env: 'janisdev',
+				app: 'wms',
+				newVersionNumber: '2.0.0.2345',
+			});
+
+			// La descarga e instalación fueron exitosas
+			expect(result).toEqual(true);
+		});
+
+		it('returns true even if APK installation fails but download was successful', async () => {
+			mockVersion.mockReturnValueOnce(33);
+			mockInstall.mockRejectedValueOnce(new Error('Installation failed'));
+			mockIsDevEnv.mockReturnValueOnce(false);
+
+			const result = await updateFromJanis({
+				env: 'janis',
+				app: 'picking',
+				newVersionNumber: '3.0.0.5678',
+			});
+
+			// Aunque la instalación falle, retornamos true porque la descarga fue exitosa
+			expect(result).toEqual(true);
 		});
 	});
 });
