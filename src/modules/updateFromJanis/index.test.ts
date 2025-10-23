@@ -3,6 +3,7 @@ jest.mock('react-native', () => {
 	const RN = jest.requireActual('react-native');
 	RN.NativeModules.ApkInstaller = {
 		install: jest.fn(() => Promise.resolve(true)),
+		checkUpdateCompleted: jest.fn(() => Promise.resolve(false)),
 	};
 	return RN;
 });
