@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.3.0-beta.2] - 2025-10-22
+
+### Added
+
+- New `checkIfJustUpdated()` function to detect when the app was just updated
+- Post-installation detection system using SharedPreferences
+- Automatic cleanup of old APK files after successful installation
+- Support for "What's New" dialogs and post-update actions
+- Comprehensive test coverage for update detection (100% coverage maintained)
+
+### Changed
+
+- `ApkInstallerModule` now saves update state before opening installer
+- Enhanced native module with `checkUpdateCompleted()` method for detecting completed installations
+- Updated TypeScript interfaces to include new `checkUpdateCompleted` method
+
+### Technical
+
+- Added SharedPreferences storage for tracking pending updates
+- Implemented automatic APK file cleanup after installation
+- Added Platform OS check to ensure Android-only functionality
+- Updated documentation with usage examples for post-update detection
+- Added 5 new unit tests for update detection scenarios
+
 ## [3.3.0-beta.1] - 2025-10-22
 
 ### Added

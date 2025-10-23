@@ -1,6 +1,8 @@
 package com.janiscommerce.appcheckupdates;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import androidx.core.content.FileProvider;
@@ -15,6 +17,9 @@ import java.io.File;
 public class ApkInstallerModule extends ReactContextBaseJavaModule {
 
     private final ReactApplicationContext reactContext;
+    private static final String PREFS_NAME = "AppCheckUpdatesPrefs";
+    private static final String KEY_UPDATE_PENDING = "updatePending";
+    private static final String KEY_APK_PATH = "apkPath";
 
     public ApkInstallerModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -26,6 +31,10 @@ public class ApkInstallerModule extends ReactContextBaseJavaModule {
         return "ApkInstaller";
     }
 
+    private SharedPreferences getPreferences() {
+        return reactContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+    }
+
     @ReactMethod
     public void install(String filePath, Promise promise) {
         try {
@@ -35,6 +44,12 @@ public class ApkInstallerModule extends ReactContextBaseJavaModule {
                 promise.reject("FILE_NOT_FOUND", "APK file not found at: " + filePath);
                 return;
             }
+
+            // Guardar flag indicando que hay una actualización pendiente
+            SharedPreferences.Editor editor = getPreferences().edit();
+            editor.putBoolean(KEY_UPDATE_PENDING, true);
+            editor.putString(KEY_APK_PATH, filePath);
+            editor.apply();
 
             Uri apkUri;
             Intent intent;
@@ -67,6 +82,50 @@ public class ApkInstallerModule extends ReactContextBaseJavaModule {
 
         } catch (Exception e) {
             promise.reject("INSTALL_ERROR", "Error installing APK: " + e.getMessage());
+        }
+    }
+
+    @ReactMethod
+    public void checkUpdateCompleted(Promise promise) {
+        try {
+            SharedPreferences prefs = getPreferences();
+            boolean updatePending = prefs.getBoolean(KEY_UPDATE_PENDING, false);
+
+            if (updatePending) {
+                // La actualización se completó, limpiar la flag
+                String apkPath = prefs.getString(KEY_APK_PATH, null);
+
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.remove(KEY_UPDATE_PENDING);
+                editor.remove(KEY_APK_PATH);
+                editor.apply();
+
+                // Intentar eliminar la APK vieja si existe
+                if (apkPath != null) {
+                    try {
+                        File oldApk = new File(apkPath);
+                        if (oldApk.exists()) {
+                            oldApk.delete();
+                        }
+                        // Intentar eliminar el directorio padre si está vacío
+                        File parentDir = oldApk.getParentFile();
+                        if (parentDir != null && parentDir.exists()) {
+                            String[] files = parentDir.list();
+                            if (files == null || files.length == 0) {
+                                parentDir.delete();
+                            }
+                        }
+                    } catch (Exception e) {
+                        // Ignorar errores al eliminar archivos
+                    }
+                }
+
+                promise.resolve(true);
+            } else {
+                promise.resolve(false);
+            }
+        } catch (Exception e) {
+            promise.reject("CHECK_ERROR", "Error checking update status: " + e.getMessage());
         }
     }
 }

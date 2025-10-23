@@ -42,6 +42,26 @@ Since version 3.3.0, `updateFromJanis` automatically triggers the APK installati
 
 **Note:** If the installation fails (e.g., due to permissions), the APK remains downloaded and the user can install it manually from their device's file manager.
 
+## checkIfJustUpdated
+
+This function checks if the app was just updated and automatically cleans up old APK files. It's useful for showing a "What's New" dialog or performing post-update tasks.
+
+### Returns
+
+Returns a `Promise<boolean>`:
+- `true` if the app was recently updated via `updateFromJanis`
+- `false` if no update was detected or if called on iOS
+
+### Behavior
+
+When called:
+1. Checks if there was a pending update flag saved before installation
+2. If found, clears the flag and deletes the old APK file
+3. Returns `true` to indicate the app was just updated
+4. Returns `false` on subsequent calls (flag is already cleared)
+
+**Note:** This function only works on Android devices. On iOS, it always returns `false`.
+
 ## Installation
 
 The minimum required versions for using the package are **react: 17.0.2** and **react-native: 0.67.5**.
@@ -135,9 +155,11 @@ npm run android
 - On Android 8.0 (API level 26) and higher, users must explicitly grant permission to install apps from unknown sources. The system will prompt the user automatically when the installation is triggered.
 - The FileProvider configuration is required for Android 7.0+ to securely share the APK file with the system installer.
 
-## Usage Example
+## Usage Examples
 
-```sh
+### Basic Update Check
+
+```javascript
 import React, {useEffect} from 'react';
 import {View, Text} from 'react-native';
 import {appCheckUpdates, updateFromJanis} from '@janiscommerce/app-check-updates';
@@ -166,4 +188,112 @@ const App = () => {
 };
 
 ReactDOM.render(<App />, document.querySelector('#app'));
+```
+
+### Detecting App Updates and Showing "What's New"
+
+```javascript
+import React, {useEffect, useState} from 'react';
+import {View, Text, Modal, Button} from 'react-native';
+import {checkIfJustUpdated} from '@janiscommerce/app-check-updates';
+
+const App = () => {
+	const [showWhatsNew, setShowWhatsNew] = useState(false);
+
+	useEffect(async () => {
+		// Check if app was just updated
+		const wasUpdated = await checkIfJustUpdated();
+
+		if (wasUpdated) {
+			// Show "What's New" dialog
+			setShowWhatsNew(true);
+			// The old APK file has been automatically cleaned up
+		}
+	}, []);
+
+	return (
+		<View>
+			<Text>My App</Text>
+
+			<Modal visible={showWhatsNew} onRequestClose={() => setShowWhatsNew(false)}>
+				<View>
+					<Text>What's New in this Version!</Text>
+					<Text>• Feature 1</Text>
+					<Text>• Feature 2</Text>
+					<Button title="Close" onPress={() => setShowWhatsNew(false)} />
+				</View>
+			</Modal>
+		</View>
+	);
+};
+
+export default App;
+```
+
+### Complete Update Flow with Post-Install Detection
+
+```javascript
+import React, {useEffect, useState} from 'react';
+import {View, Text, Alert} from 'react-native';
+import {appCheckUpdates, updateFromJanis, checkIfJustUpdated} from '@janiscommerce/app-check-updates';
+
+const App = () => {
+	const [isChecking, setIsChecking] = useState(true);
+
+	useEffect(async () => {
+		// First, check if we just came back from an update
+		const wasUpdated = await checkIfJustUpdated();
+
+		if (wasUpdated) {
+			Alert.alert(
+				'Update Complete!',
+				'Your app has been successfully updated to the latest version.',
+				[{text: 'OK'}]
+			);
+		}
+
+		// Then check for new updates
+		const {shouldUpdateFromJanis, newVersionNumber} = await appCheckUpdates({
+			buildNumber: "2350",
+			env: "janisqa",
+			app: 'picking',
+		});
+
+		if (shouldUpdateFromJanis) {
+			Alert.alert(
+				'Update Available',
+				`A new version (${newVersionNumber}) is available. Do you want to update now?`,
+				[
+					{text: 'Later', style: 'cancel'},
+					{
+						text: 'Update',
+						onPress: async () => {
+							await updateFromJanis({
+								env: "janisqa",
+								app: 'picking',
+								newVersionNumber,
+							});
+							// After this, the app will close and install
+							// When it reopens, checkIfJustUpdated() will return true
+						}
+					}
+				]
+			);
+		}
+
+		setIsChecking(false);
+	}, []);
+
+	if (isChecking) {
+		return <Text>Checking for updates...</Text>;
+	}
+
+	return (
+		<View>
+			<Text>My App</Text>
+		</View>
+	);
+};
+
+export default App;
 ```
