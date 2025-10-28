@@ -66,3 +66,7 @@ coverage
 
 #build
 dist/
+
+# yalc
+.yalc/
+yalc.lock

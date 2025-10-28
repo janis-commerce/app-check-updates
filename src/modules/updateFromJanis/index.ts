@@ -73,6 +73,16 @@ const updateFromJanis = async ({
 		const dirExists = await RNFS.exists(targetDir);
 
 		if (dirExists) {
+			// Limpiar contenido del directorio antes de eliminarlo
+			try {
+				const files = await RNFS.readDir(targetDir);
+				for (const file of files) {
+					await RNFS.unlink(file.path);
+				}
+			} catch (cleanDirError) {
+				// Ignorar errores al limpiar archivos individuales
+			}
+			// Eliminar el directorio
 			await RNFS.unlink(targetDir);
 		}
 
@@ -95,6 +105,8 @@ const updateFromJanis = async ({
 			try {
 				await ApkInstaller.install(apkPath);
 				Crashlytics.log('APK installation started successfully');
+				// La limpieza del archivo APK se realiza después de la instalación exitosa
+				// mediante el método checkUpdateCompleted() en ApkInstallerModule
 				return true;
 			} catch (installError: unknown) {
 				Crashlytics.recordError(installError, 'error installing APK');

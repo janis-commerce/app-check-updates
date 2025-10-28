@@ -4,4 +4,15 @@
     <!-- Permiso para instalar APKs desde fuentes desconocidas (Android 8.0+) -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
+    <application>
+        <!-- Receiver para detectar cuando la app se actualiza -->
+        <receiver
+            android:name=".InstallReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+    </application>
+
 </manifest>
