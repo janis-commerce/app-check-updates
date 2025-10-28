@@ -67,9 +67,6 @@ public class ApkInstallerModule extends ReactContextBaseJavaModule {
                 intent = new Intent(Intent.ACTION_INSTALL_PACKAGE);
                 intent.setData(apkUri);
                 intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
-                intent.putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true);
-                intent.putExtra(Intent.EXTRA_RETURN_RESULT, true);
-                intent.putExtra(Intent.EXTRA_INSTALLER_PACKAGE_NAME, reactContext.getPackageName());
             } else {
                 apkUri = Uri.fromFile(apkFile);
                 intent = new Intent(Intent.ACTION_VIEW);
