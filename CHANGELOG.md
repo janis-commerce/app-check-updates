@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.3.0-beta.8] - 2025-10-30
+
 ### Removed
 
 - `checkIfJustUpdated()` function and all related cleanup functionality
@@ -17,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Simplified `ApkInstallerModule` to only handle installation
 - Removed unnecessary imports and dependencies from native module
+
+### Fixed
+
+- Fixed issue where empty directory caused download to fail
+- Now properly cleans existing directory without recreating it
 
 ## [3.3.0-beta.7] - 2025-10-28
 
