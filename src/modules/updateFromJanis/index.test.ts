@@ -20,6 +20,7 @@ const mockRequestMultiple = jest.fn(() => new Promise((resolve) => resolve(true)
 const mockCheck = jest.fn();
 const RNFSExistsSpy = jest.spyOn(RNFS, 'exists');
 const RNFSUnlinkSpy = jest.spyOn(RNFS, 'unlink');
+const RNFSReadDirSpy = jest.spyOn(RNFS, 'readDir');
 
 jest.mock('react-native//Libraries/PermissionsAndroid/PermissionsAndroid', () => {
 	const PermissionsAndroid = jest.requireActual(
@@ -139,6 +140,7 @@ describe('App check updates funtion', () => {
 		it('works correctly in janisqa environment with invalid callback', async () => {
 			mockVersion.mockReturnValueOnce(14);
 			RNFSExistsSpy.mockResolvedValueOnce(true);
+			RNFSReadDirSpy.mockResolvedValueOnce([{path: '/some/old/file.apk'}] as any);
 			RNFSUnlinkSpy.mockResolvedValueOnce(undefined);
 			mockCheck.mockResolvedValue(true);
 			await expect(

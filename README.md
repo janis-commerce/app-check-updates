@@ -13,11 +13,11 @@ It is checked by two means, in the first instance it is consulted in the store o
 
 ### Parameters
 
-| Options    | Type              | Description                            |
-| ---------- | ----------------- | -------------------------------------- |
+| Options     | Type              | Description                                  |
+| ----------- | ----------------- | -------------------------------------------- |
 | buildNumber | (required) String | The build number of your current app version |
-| env | (required) String | Janis environment where we are working |
-| app | (required) String | Application we work on |
+| env         | (required) String | Janis environment where we are working       |
+| app         | (required) String | Application we work on                       |
 
 ## updateFromJanis
 
@@ -25,11 +25,11 @@ This function is responsible for downloading the apk of the new version using an
 
 ### Parameters
 
-| Options    | Type              | Description                            |
-| ---------- | ----------------- | -------------------------------------- |
-| newVersionNumber | (required) String | The new version number of the app |
-| env | (required) String | Janis environment where we are working |
-| app | (required) String | Application we work on |
+| Options          | Type              | Description                            |
+| ---------------- | ----------------- | -------------------------------------- |
+| newVersionNumber | (required) String | The new version number of the app      |
+| env              | (required) String | Janis environment where we are working |
+| app              | (required) String | Application we work on                 |
 
 ### Automatic Installation
 
@@ -41,26 +41,6 @@ Since version 3.3.0, `updateFromJanis` automatically triggers the APK installati
 4. Android handles the app replacement automatically
 
 **Note:** If the installation fails (e.g., due to permissions), the APK remains downloaded and the user can install it manually from their device's file manager.
-
-## checkIfJustUpdated
-
-This function checks if the app was just updated and automatically cleans up old APK files. It's useful for showing a "What's New" dialog or performing post-update tasks.
-
-### Returns
-
-Returns a `Promise<boolean>`:
-- `true` if the app was recently updated via `updateFromJanis`
-- `false` if no update was detected or if called on iOS
-
-### Behavior
-
-When called:
-1. Checks if there was a pending update flag saved before installation
-2. If found, clears the flag and deletes the old APK file
-3. Returns `true` to indicate the app was just updated
-4. Returns `false` on subsequent calls (flag is already cleared)
-
-**Note:** This function only works on Android devices. On iOS, it always returns `false`.
 
 ## Installation
 
@@ -150,6 +130,7 @@ npm run android
 ```
 
 **Important Notes:**
+
 - This package includes its own native Android module - no external APK installer libraries needed!
 - The FileProvider and permissions are **automatically merged** from this package's AndroidManifest.
 - On Android 8.0 (API level 26) and higher, users must explicitly grant permission to install apps from unknown sources. The system will prompt the user automatically when the installation is triggered.
@@ -166,14 +147,14 @@ import {appCheckUpdates, updateFromJanis} from '@janiscommerce/app-check-updates
 
 const App = () => {
 	useEffect(async () => {
-  		const {hasCheckedUpdate, shouldUpdateFromJanis, newVersionNumber} = await appCheckUpdates({
-			buildNumber: "2350",
-			env: "janisqa",
+		const {hasCheckedUpdate, shouldUpdateFromJanis, newVersionNumber} = await appCheckUpdates({
+			buildNumber: '2350',
+			env: 'janisqa',
 			app: 'picking',
 		});
 		if (shouldUpdateFromJanis) {
 			await updateFromJanis({
-				env: "janisqa",
+				env: 'janisqa',
 				app: 'picking',
 				newVersionNumber: newVersionNumber,
 			});
@@ -235,7 +216,11 @@ export default App;
 ```javascript
 import React, {useEffect, useState} from 'react';
 import {View, Text, Alert} from 'react-native';
-import {appCheckUpdates, updateFromJanis, checkIfJustUpdated} from '@janiscommerce/app-check-updates';
+import {
+	appCheckUpdates,
+	updateFromJanis,
+	checkIfJustUpdated,
+} from '@janiscommerce/app-check-updates';
 
 const App = () => {
 	const [isChecking, setIsChecking] = useState(true);
@@ -254,8 +239,8 @@ const App = () => {
 
 		// Then check for new updates
 		const {shouldUpdateFromJanis, newVersionNumber} = await appCheckUpdates({
-			buildNumber: "2350",
-			env: "janisqa",
+			buildNumber: '2350',
+			env: 'janisqa',
 			app: 'picking',
 		});
 
@@ -269,14 +254,14 @@ const App = () => {
 						text: 'Update',
 						onPress: async () => {
 							await updateFromJanis({
-								env: "janisqa",
+								env: 'janisqa',
 								app: 'picking',
 								newVersionNumber,
 							});
 							// After this, the app will close and install
 							// When it reopens, checkIfJustUpdated() will return true
-						}
-					}
+						},
+					},
 				]
 			);
 		}

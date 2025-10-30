@@ -70,13 +70,22 @@ const updateFromJanis = async ({
 
 		const targetEnv = envMapper[env];
 		const targetDir = `${RNFS.DownloadDirectoryPath}/${app}${targetEnv}-apk`;
+
+		// Verificar si el directorio existe
 		const dirExists = await RNFS.exists(targetDir);
 
 		if (dirExists) {
-			await RNFS.unlink(targetDir);
-		}
+			// Leer contenido del directorio
+			const files = await RNFS.readDir(targetDir);
 
-		await RNFS.mkdir(targetDir);
+			// Eliminar todos los archivos dentro del directorio
+			for (const file of files) {
+				await RNFS.unlink(file.path);
+			}
+		} else {
+			// Crear el directorio solo si no existe
+			await RNFS.mkdir(targetDir);
+		}
 
 		/* istanbul ignore next */
 		const downloadProgressHandler =

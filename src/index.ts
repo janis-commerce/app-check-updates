@@ -1,4 +1,3 @@
-import {NativeModules, Platform} from 'react-native';
 import updateFromStore from './modules/updateFromStore';
 import updateFromJanis from './modules/updateFromJanis';
 import {checkNeedsUpdateInJanis, defaultResponse} from './utils';
@@ -34,27 +33,4 @@ const appCheckUpdates = async ({buildNumber, isDebug = false, env, app}: IappChe
 	return defaultResponse;
 };
 
-/**
- * @name checkIfJustUpdated
- * @description Verifica si la app acaba de actualizarse y limpia los archivos temporales
- * @returns {Promise<boolean>} true si la app se actualizó recientemente
- */
-const checkIfJustUpdated = async (): Promise<boolean> => {
-	try {
-		// Solo disponible en Android
-		if (Platform.OS !== 'android') {
-			return false;
-		}
-
-		const ApkInstaller = NativeModules.ApkInstaller;
-		if (ApkInstaller && ApkInstaller.checkUpdateCompleted) {
-			return await ApkInstaller.checkUpdateCompleted();
-		}
-		return false;
-	} catch (error) {
-		// Ignorar errores si el módulo no está disponible
-		return false;
-	}
-};
-
-export {appCheckUpdates, updateFromJanis, checkIfJustUpdated};
+export {appCheckUpdates, updateFromJanis};

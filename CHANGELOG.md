@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- `checkIfJustUpdated()` function and all related cleanup functionality
+- SharedPreferences storage for tracking pending updates
+- Automatic APK file cleanup after installation
+
+### Changed
+
+- Simplified `ApkInstallerModule` to only handle installation
+- Removed unnecessary imports and dependencies from native module
+
 ## [3.3.0-beta.7] - 2025-10-28
 
 ### Fixed
