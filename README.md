@@ -116,7 +116,7 @@ Create the file `android/app/src/main/res/xml/file_paths.xml`:
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
     <external-path name="external_files" path="." />
-    <external-path name="downloads" path="Download/" />
+    <external-path name="downloads" path="Download" />
 </paths>
 ```
 
