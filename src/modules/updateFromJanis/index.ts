@@ -75,17 +75,12 @@ const updateFromJanis = async ({
 		const dirExists = await RNFS.exists(targetDir);
 
 		if (dirExists) {
-			// Leer contenido del directorio
-			const files = await RNFS.readDir(targetDir);
-
-			// Eliminar todos los archivos dentro del directorio
-			for (const file of files) {
-				await RNFS.unlink(file.path);
-			}
-		} else {
-			// Crear el directorio solo si no existe
-			await RNFS.mkdir(targetDir);
+			// Eliminar el directorio recursivamente con todo su contenido
+			await RNFS.unlink(targetDir);
 		}
+
+		// Crear el directorio limpio
+		await RNFS.mkdir(targetDir);
 
 		/* istanbul ignore next */
 		const downloadProgressHandler =
