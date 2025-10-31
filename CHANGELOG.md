@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.3.0] - 2025-10-31
+
+### Added
+
+- Native Android module (`ApkInstallerModule`) for automatic APK installation after download
+- Automatic installation flow in `updateFromJanis`: after successful download, the APK is automatically installed without user intervention
+- React Native autolinking configuration for seamless native module integration
+- Broadcast receiver (`InstallReceiver`) to handle installation events
+
+### Changed
+
+- `updateFromJanis` now automatically triggers APK installation after successful download
+- Download returns `true` even if automatic installation fails, allowing manual installation from downloaded files
+- Improved directory cleanup strategy: now deletes only files inside the directory instead of removing and recreating the entire directory
+- Simplified installation flow by removing post-installation cleanup functionality
+
 ## [3.3.0-beta.8] - 2025-10-30
 
 ### Removed
