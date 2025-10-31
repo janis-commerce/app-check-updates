@@ -71,16 +71,17 @@ const updateFromJanis = async ({
 		const targetEnv = envMapper[env];
 		const targetDir = `${RNFS.DownloadDirectoryPath}/${app}${targetEnv}-apk`;
 
-		// Verificar si el directorio existe
-		const dirExists = await RNFS.exists(targetDir);
+		const targetDirExists = await RNFS.exists(targetDir);
 
-		if (dirExists) {
-			// Eliminar el directorio recursivamente con todo su contenido
-			await RNFS.unlink(targetDir);
+		if (targetDirExists) {
+			const files = await RNFS.readDir(targetDir);
+
+			for (const file of files) {
+				await RNFS.unlink(file.path);
+			}
+		} else {
+			await RNFS.mkdir(targetDir);
 		}
-
-		// Crear el directorio limpio
-		await RNFS.mkdir(targetDir);
 
 		/* istanbul ignore next */
 		const downloadProgressHandler =
@@ -99,13 +100,9 @@ const updateFromJanis = async ({
 			try {
 				await ApkInstaller.install(apkPath);
 				Crashlytics.log('APK installation started successfully');
-				// La limpieza del archivo APK se realiza después de la instalación exitosa
-				// mediante el método checkUpdateCompleted() en ApkInstallerModule
 				return true;
 			} catch (installError: unknown) {
 				Crashlytics.recordError(installError, 'error installing APK');
-				// Si falla la instalación, aún retornamos true porque la descarga fue exitosa
-				// El usuario puede instalar manualmente desde los archivos descargados
 				if (isDevEnvironment) {
 					// eslint-disable-next-line no-console
 					console.error('Install error:', installError);
