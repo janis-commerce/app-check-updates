@@ -21,10 +21,8 @@ def agpVersionParts = agpVersion.tokenize('.')
 def agpMajor = agpVersionParts[0].toInteger()
 
 android {
-    // AGP 7.0+ requiere namespace
-    if (agpMajor >= 7) {
-        namespace "com.janiscommerce.appcheckupdates"
-    }
+    // AGP 7.0+ requiere namespace (obligatorio en AGP 8.0+)
+    namespace "com.janiscommerce.appcheckupdates"
 
     compileSdkVersion rootProject.ext.compileSdkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
