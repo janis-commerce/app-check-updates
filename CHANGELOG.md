@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.4.0] - 2025-11-04
+
+### Added
+
+- Declared `namespace` in `build.gradle` for Gradle 8.0+ compatibility
+
+### Removed
+
+- `REQUEST_INSTALL_PACKAGES` permission from package's `AndroidManifest.xml` (must now be declared by consuming apps)
+- `checkUpdateCompleted()` method from `ApkInstallerModule`
+- Premature APK cleanup that occurred before installation completed
+
+### Fixed
+
+- APK installation failures caused by deleting the APK file before the user completed installation
+- Installation flow now properly waits for user to complete installation before cleanup
+
 ## [3.3.0] - 2025-10-31
 
 ### Added
