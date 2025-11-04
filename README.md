@@ -72,13 +72,14 @@ This package includes a **native Android module** for automatic APK installation
 
 To enable automatic APK installation, you need to configure the following in your Android app:
 
-#### 1. Add Permission
+#### 1. Add Permission (Required)
 
-Add the installation permission to your `android/app/src/main/AndroidManifest.xml`:
+⚠️ **Important:** Your application **must** declare the installation permission in its `android/app/src/main/AndroidManifest.xml`. This permission is **not** included in the package to allow apps to configure it conditionally (e.g., using product flavors):
 
 ```xml
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Required for automatic APK installation (Android 8.0+) -->
+    <!-- This MUST be declared in your app's manifest -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <application>
@@ -86,6 +87,8 @@ Add the installation permission to your `android/app/src/main/AndroidManifest.xm
     </application>
 </manifest>
 ```
+
+**Note:** If you're using Android product flavors, you can conditionally include this permission per flavor in your flavor-specific manifest files.
 
 #### 2. Configure FileProvider
 
@@ -132,7 +135,8 @@ npm run android
 **Important Notes:**
 
 - This package includes its own native Android module - no external APK installer libraries needed!
-- The FileProvider and permissions are **automatically merged** from this package's AndroidManifest.
+- The `REQUEST_INSTALL_PACKAGES` permission **must be declared in your app's manifest** - it is not automatically included by this package. This allows you to configure it conditionally per build flavor.
+- The `InstallReceiver` component **is automatically merged** from this package's AndroidManifest to handle post-installation cleanup.
 - On Android 8.0 (API level 26) and higher, users must explicitly grant permission to install apps from unknown sources. The system will prompt the user automatically when the installation is triggered.
 - The FileProvider configuration is required for Android 7.0+ to securely share the APK file with the system installer.
 
