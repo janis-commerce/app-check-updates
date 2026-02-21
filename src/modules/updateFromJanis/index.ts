@@ -97,18 +97,18 @@ const updateFromJanis = async ({
 
 		if (response.statusCode === 200) {
 			// Instalar automáticamente la APK descargada
-			try {
-				await ApkInstaller.install(apkPath);
-				Crashlytics.log('APK installation started successfully');
-				return true;
-			} catch (installError: unknown) {
-				Crashlytics.recordError(installError, 'error installing APK');
-				if (isDevEnvironment) {
-					// eslint-disable-next-line no-console
-					console.error('Install error:', installError);
-				}
-				return true;
-			}
+			await ApkInstaller.install(apkPath)
+				.then(() => {
+					Crashlytics.log('APK installation started successfully');
+				})
+				.catch((installError: unknown) => {
+					Crashlytics.recordError(installError, 'error installing APK');
+					if (isDevEnvironment) {
+						// eslint-disable-next-line no-console
+						console.error('Install error:', installError);
+					}
+				});
+			return true;
 		}
 
 		return false;
