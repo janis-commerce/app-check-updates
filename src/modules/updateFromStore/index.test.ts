@@ -26,7 +26,7 @@ const defaultResponse = {hasCheckedUpdate: false, needCheckInJanis: false};
 describe('updateFromStore', () => {
 	describe('Error handling', () => {
 		it('buildNumber is not a string', () => {
-			expect(updateFromStore({buildNumber: ''})).resolves.toBe(defaultResponse);
+			expect(updateFromStore({buildNumber: ''})).resolves.toStrictEqual(defaultResponse);
 		});
 
 		it('A promise is reject', async () => {
