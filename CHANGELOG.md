@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.6.0] - 2026-02-21
+
+### Changed
+
+- Updated `react-native` peer dependency range from `>=0.67.5 <0.75.0` to `>=0.71.5 <0.82.0` to add support for React Native 0.80.2
+- Updated `react` peer dependency range from `>=17.0.2 <19.0.0` to `>=17.0.2 <20.0.0`
+- Standardized Node.js to v22 in `.nvmrc` and all CI workflows
+- Upgraded `jest` and `babel-jest` from v26 to v29
+- Updated `devDependencies`: `react-native` 0.71.5, `react` and `react-test-renderer` 18.2.0
+- Updated CI `actions/checkout` and `actions/setup-node` to v4
+
 ## [3.5.0] - 2025-11-04
 
 ### Changed
