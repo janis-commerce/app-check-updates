@@ -1,6 +1,7 @@
 package com.janiscommerce.appcheckupdates;
 
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import androidx.core.content.FileProvider;
@@ -64,6 +65,23 @@ public class ApkInstallerModule extends ReactContextBaseJavaModule {
 
         } catch (Exception e) {
             promise.reject("INSTALL_ERROR", "Error installing APK: " + e.getMessage());
+        }
+    }
+
+    @ReactMethod
+    public void getInstallerPackageName(Promise promise) {
+        try {
+            PackageManager packageManager = reactContext.getPackageManager();
+            String packageName = reactContext.getPackageName();
+
+            // getInstallerPackageName is deprecated since API 30 in favor of getInstallSourceInfo
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                promise.resolve(packageManager.getInstallSourceInfo(packageName).getInstallingPackageName());
+            } else {
+                promise.resolve(packageManager.getInstallerPackageName(packageName));
+            }
+        } catch (Exception e) {
+            promise.reject("INSTALLER_ERROR", "Error getting installer package name: " + e.getMessage());
         }
     }
 

@@ -9,7 +9,7 @@ This package provides the functionality to detect when there is a new version of
 
 ## appCheckUpdates
 
-It is checked by two means, in the first instance it is consulted in the store of the corresponding operating system, for cases where you work with apks and do not have access to the store, an api provided bi Janis will be searched, and if you have new versions, will additionally return the new version number.
+It is checked by two means, in the first instance it is consulted in the store of the corresponding operating system, for cases where you work with apks and do not have access to the store, an api provided by Janis will be searched, and if you have new versions, will additionally return the new version number.
 
 ### Parameters
 
@@ -18,6 +18,7 @@ It is checked by two means, in the first instance it is consulted in the store o
 | buildNumber | (required) String | The build number of your current app version |
 | env         | (required) String | Janis environment where we are working       |
 | app         | (required) String | Application we work on                       |
+| isDebug     | (optional) Bool   | Enables the store library debug mode         |
 
 ## updateFromJanis
 
@@ -25,11 +26,12 @@ This function is responsible for downloading the apk of the new version using an
 
 ### Parameters
 
-| Options          | Type              | Description                            |
-| ---------------- | ----------------- | -------------------------------------- |
-| newVersionNumber | (required) String | The new version number of the app      |
-| env              | (required) String | Janis environment where we are working |
-| app              | (required) String | Application we work on                 |
+| Options                  | Type                | Description                            |
+| ------------------------ | ------------------- | -------------------------------------- |
+| newVersionNumber         | (required) String   | The new version number of the app      |
+| env                      | (required) String   | Janis environment where we are working |
+| app                      | (required) String   | Application we work on                 |
+| DownloadProgressCallback | (optional) Function | Receives the download progress         |
 
 ### Automatic Installation
 
@@ -42,9 +44,67 @@ Since version 3.3.0, `updateFromJanis` automatically triggers the APK installati
 
 **Note:** If the installation fails (e.g., due to permissions), the APK remains downloaded and the user can install it manually from their device's file manager.
 
+## VersionCheckProvider and useVersionCheck
+
+Warns the user when their build is about to stop working and blocks the app once it did, based on the `minVersions` published in `versions.json`. The provider shows the warning modal and the blocking screen by itself; the app only decides **when** to check.
+
+- The warning shows the blocking date, can be closed and appears once per session.
+- The blocking screen can't be closed. Its "Update" button uses the install channel: immediate Play Store update, or APK download from Janis.
+- Time comes from the server (`Date` + `Age` headers). Offline, the last saved `versions.json` is applied with the latest of the device clock and the last server time seen, so setting the clock back doesn't skip the block.
+
+### Parameters
+
+| Options     | Type              | Description                                  |
+| ----------- | ----------------- | -------------------------------------------- |
+| buildNumber | (required) String | The build number of your current app version |
+| env         | (required) String | Janis environment where we are working       |
+| app         | (required) String | Application we work on                       |
+| texts       | (required) Object | Translated texts, see below                  |
+
+`texts` keys: `warningTitle`, `warningButton`, `blockingTitle`, `updateButton`, `updateUnavailable` (Play Store doesn't offer the new version yet), `updateFailed`, and `warningMessage` / `blockingMessage`, which are functions that receive the blocking `Date` so the app formats it in the user's language.
+
+### Usage
+
+Mount the provider in the logged-in part of the app, where the user's language is already set, so the texts arrive translated. The modals open over the whole screen wherever the provider is placed.
+
+```javascript
+import {VersionCheckProvider, useVersionCheck} from '@janiscommerce/app-check-updates';
+
+const LoggedApp = ({children}) => (
+	<VersionCheckProvider
+		env="janisqa"
+		app="picking"
+		buildNumber="2350"
+		texts={{
+			warningTitle: t('appCommon.title.updateRequired'),
+			warningMessage: (date) =>
+				t('appCommon.message.versionStopsWorking', {date: formatDate(date)}),
+			warningButton: t('appCommon.action.understood'),
+			blockingTitle: t('appCommon.title.versionNotSupported'),
+			blockingMessage: (date) =>
+				t('appCommon.message.versionStoppedWorking', {date: formatDate(date)}),
+			updateButton: t('appCommon.action.update'),
+			updateUnavailable: t('appCommon.message.updateNotAvailableYet'),
+			updateFailed: t('appCommon.message.updateFailed'),
+		}}>
+		{children}
+	</VersionCheckProvider>
+);
+
+// Call it only on safe points (Home and lists before starting a job), so the block never interrupts a job in progress
+const Home = () => {
+	const {checkVersion} = useVersionCheck();
+
+	useEffect(() => {
+		checkVersion();
+	}, []);
+	// ...
+};
+```
+
 ## Installation
 
-The minimum required versions for using the package are **react: 17.0.2** and **react-native: 0.67.5**.
+The package supports **react >= 17.0.2 < 20** and **react-native >= 0.71.5 < 0.82**.
 
 ```sh
 npm install @janiscommerce/app-check-updates
@@ -54,16 +114,28 @@ npm install @janiscommerce/app-check-updates
 
 This package requires the following peer dependencies to be installed manually in your application:
 
-#### 1. [sp-react-native-in-app-updates](https://www.npmjs.com/package/sp-react-native-in-app-updates/v/1.2.0)
+#### 1. [sp-react-native-in-app-updates](https://www.npmjs.com/package/sp-react-native-in-app-updates) (>= 1.2.0)
 
 ```sh
-npm install sp-react-native-in-app-updates@1.2.0
+npm install sp-react-native-in-app-updates
 ```
 
 #### 2. [react-native-fs](https://www.npmjs.com/package/react-native-fs)
 
 ```sh
 npm install react-native-fs
+```
+
+#### 3. [@janiscommerce/ui-native](https://www.npmjs.com/package/@janiscommerce/ui-native) (>= 2.5.0)
+
+```sh
+npm install @janiscommerce/ui-native
+```
+
+#### 4. [@janiscommerce/app-storage](https://www.npmjs.com/package/@janiscommerce/app-storage) (>= 1.2.0)
+
+```sh
+npm install @janiscommerce/app-storage
 ```
 
 ### Android Configuration
@@ -150,19 +222,22 @@ import {View, Text} from 'react-native';
 import {appCheckUpdates, updateFromJanis} from '@janiscommerce/app-check-updates';
 
 const App = () => {
-	useEffect(async () => {
-		const {hasCheckedUpdate, shouldUpdateFromJanis, newVersionNumber} = await appCheckUpdates({
-			buildNumber: '2350',
-			env: 'janisqa',
-			app: 'picking',
-		});
-		if (shouldUpdateFromJanis) {
-			await updateFromJanis({
+	useEffect(() => {
+		const checkUpdates = async () => {
+			const {shouldUpdateFromJanis, newVersionNumber} = await appCheckUpdates({
+				buildNumber: '2350',
 				env: 'janisqa',
 				app: 'picking',
-				newVersionNumber: newVersionNumber,
 			});
-		}
+			if (shouldUpdateFromJanis) {
+				await updateFromJanis({
+					env: 'janisqa',
+					app: 'picking',
+					newVersionNumber,
+				});
+			}
+		};
+		checkUpdates();
 	}, []);
 
 	return (
@@ -172,76 +247,20 @@ const App = () => {
 	);
 };
 
-ReactDOM.render(<App />, document.querySelector('#app'));
-```
-
-### Detecting App Updates and Showing "What's New"
-
-```javascript
-import React, {useEffect, useState} from 'react';
-import {View, Text, Modal, Button} from 'react-native';
-import {checkIfJustUpdated} from '@janiscommerce/app-check-updates';
-
-const App = () => {
-	const [showWhatsNew, setShowWhatsNew] = useState(false);
-
-	useEffect(async () => {
-		// Check if app was just updated
-		const wasUpdated = await checkIfJustUpdated();
-
-		if (wasUpdated) {
-			// Show "What's New" dialog
-			setShowWhatsNew(true);
-			// The old APK file has been automatically cleaned up
-		}
-	}, []);
-
-	return (
-		<View>
-			<Text>My App</Text>
-
-			<Modal visible={showWhatsNew} onRequestClose={() => setShowWhatsNew(false)}>
-				<View>
-					<Text>What's New in this Version!</Text>
-					<Text>• Feature 1</Text>
-					<Text>• Feature 2</Text>
-					<Button title="Close" onPress={() => setShowWhatsNew(false)} />
-				</View>
-			</Modal>
-		</View>
-	);
-};
-
 export default App;
 ```
 
-### Complete Update Flow with Post-Install Detection
+### Asking the User Before Updating
 
 ```javascript
 import React, {useEffect, useState} from 'react';
 import {View, Text, Alert} from 'react-native';
-import {
-	appCheckUpdates,
-	updateFromJanis,
-	checkIfJustUpdated,
-} from '@janiscommerce/app-check-updates';
+import {appCheckUpdates, updateFromJanis} from '@janiscommerce/app-check-updates';
 
 const App = () => {
 	const [isChecking, setIsChecking] = useState(true);
 
-	useEffect(async () => {
-		// First, check if we just came back from an update
-		const wasUpdated = await checkIfJustUpdated();
-
-		if (wasUpdated) {
-			Alert.alert(
-				'Update Complete!',
-				'Your app has been successfully updated to the latest version.',
-				[{text: 'OK'}]
-			);
-		}
-
-		// Then check for new updates
+	const checkUpdates = async () => {
 		const {shouldUpdateFromJanis, newVersionNumber} = await appCheckUpdates({
 			buildNumber: '2350',
 			env: 'janisqa',
@@ -262,8 +281,7 @@ const App = () => {
 								app: 'picking',
 								newVersionNumber,
 							});
-							// After this, the app will close and install
-							// When it reopens, checkIfJustUpdated() will return true
+							// After the download, Android's installer opens and replaces the app
 						},
 					},
 				]
@@ -271,6 +289,10 @@ const App = () => {
 		}
 
 		setIsChecking(false);
+	};
+
+	useEffect(() => {
+		checkUpdates();
 	}, []);
 
 	if (isChecking) {

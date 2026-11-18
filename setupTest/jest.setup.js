@@ -64,6 +64,19 @@ jest.mock('@janiscommerce/app-crashlytics', () => ({
 	})),
 }));
 
+jest.mock('@janiscommerce/app-storage', () => {
+	const storage = {get: jest.fn(), set: jest.fn()};
+	return {__esModule: true, default: jest.fn(() => storage)};
+});
+
+// The real package pulls peers (reanimated, gesture-handler) that are not installed here
+jest.mock('@janiscommerce/ui-native', () => ({
+	Modal: ({children}) => children,
+	Typography: ({children}) => children,
+	Button: () => null,
+	ScreenActions: () => null,
+}));
+
 jest.mock('../src/utils/crashlytics/index.ts', () => ({
 	__esModule: true,
 	default: {
