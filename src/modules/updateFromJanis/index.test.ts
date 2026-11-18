@@ -26,17 +26,21 @@ jest.mock('react-native//Libraries/PermissionsAndroid/PermissionsAndroid', () =>
 	const PermissionsAndroid = jest.requireActual(
 		'react-native//Libraries/PermissionsAndroid/PermissionsAndroid'
 	);
+	// Since RN 0.80 the module is ESM and react-native's index reads its default export
 	return {
-		...PermissionsAndroid,
-		check: mockCheck,
-		requestMultiple: mockRequestMultiple,
+		__esModule: true,
+		default: {
+			...PermissionsAndroid.default,
+			check: mockCheck,
+			requestMultiple: mockRequestMultiple,
+		},
 	};
 });
 const mockVersion = jest.fn().mockReturnValue(14);
 
 jest.mock('react-native/Libraries/Utilities/Platform', () => {
 	const Platform = jest.requireActual('react-native/Libraries/Utilities/Platform');
-	Object.defineProperty(Platform, 'Version', {
+	Object.defineProperty(Platform.default, 'Version', {
 		get: mockVersion,
 	});
 	return Platform;
