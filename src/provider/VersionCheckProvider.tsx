@@ -13,6 +13,7 @@ interface VersionCheckProviderProps {
 	texts: VersionCheckTexts;
 	warningTtl?: number;
 	updateAvailableTtl?: number;
+	debug?: boolean;
 	children: ReactNode;
 }
 
@@ -31,11 +32,13 @@ const VersionCheckContext = createContext({checkVersion: async () => {}});
  * @param {object} texts translated texts; the min version messages receive the blocking date to format it
  * @param {number} warningTtl minutes the warning stays hidden after the user postpones it (default 120)
  * @param {number} updateAvailableTtl minutes the new version modal stays hidden after the user postpones it (default 120)
+ * @param {boolean} debug checks also on development builds (__DEV__), to try the flows (default false)
  */
 export const VersionCheckProvider = ({
 	texts,
 	warningTtl = DEFAULT_TTL_MINUTES,
 	updateAvailableTtl = DEFAULT_TTL_MINUTES,
+	debug = false,
 	children,
 }: VersionCheckProviderProps) => {
 	const [visibleModal, setVisibleModal] = useState<VisibleModal | null>(null);
@@ -48,11 +51,17 @@ export const VersionCheckProvider = ({
 		}
 
 		const {env, app, buildNumber} = appInfo;
+
+		// Local builds are below every published version, so they would always be offered updates or
+		// blocked; debug turns the check on to try the flows. Published builds are never __DEV__
+		if (__DEV__ && !debug) {
+			return;
+		}
 		// Once blocked the app stays blocked until it restarts, whatever a later check resolves
 		const showModal = (modal: VisibleModal) =>
 			setVisibleModal((current) => (current?.type === 'blocking' ? current : modal));
 
-		const {versionsFile, now} = await getVersionsInfo({env, app});
+		const {versionsFile, now, isFresh} = await getVersionsInfo({env, app});
 
 		// Never fetched and offline: there is nothing to enforce yet
 		if (!versionsFile) {
@@ -79,7 +88,8 @@ export const VersionCheckProvider = ({
 			return;
 		}
 
-		if (isDismissed('updateAvailable')) {
+		// A saved file can't be downloaded offline, so only a fresh one offers the new version
+		if (!isFresh || isDismissed('updateAvailable')) {
 			return;
 		}
 
@@ -88,7 +98,7 @@ export const VersionCheckProvider = ({
 		) {
 			showModal({type: 'updateAvailable', newVersionNumber});
 		}
-	}, [appInfo]);
+	}, [appInfo, debug]);
 
 	const contextValue = useMemo(() => ({checkVersion}), [checkVersion]);
 

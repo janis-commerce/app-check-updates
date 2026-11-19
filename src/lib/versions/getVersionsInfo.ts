@@ -29,7 +29,7 @@ const getFallbackTime = () => Math.max(Date.now(), storage.get<number>(SERVER_TI
  * @description gets versions.json and a trusted current time, falling back to the last saved file when offline
  * @param {string} env environment of janis
  * @param {string} app App name
- * @returns {object} { versionsFile: object | null, now: number }
+ * @returns {object} { versionsFile: object | null, now: number, isFresh: boolean }, isFresh false when it is the saved one
  */
 const getVersionsInfo = async ({env, app}: IgetVersionsInfo) => {
 	try {
@@ -53,16 +53,17 @@ const getVersionsInfo = async ({env, app}: IgetVersionsInfo) => {
 
 		const serverTime = getServerTime(response.headers);
 		if (Number.isNaN(serverTime)) {
-			return {versionsFile, now: getFallbackTime()};
+			return {versionsFile, now: getFallbackTime(), isFresh: true};
 		}
 
 		storage.set(SERVER_TIME_KEY, serverTime);
-		return {versionsFile, now: serverTime};
+		return {versionsFile, now: serverTime, isFresh: true};
 	} catch (error: unknown) {
 		Crashlytics.recordError(error, 'error getting versions file');
 		return {
 			versionsFile: storage.get<VersionsFile>(VERSIONS_FILE_KEY),
 			now: getFallbackTime(),
+			isFresh: false,
 		};
 	}
 };

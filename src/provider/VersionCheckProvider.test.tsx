@@ -70,8 +70,8 @@ const renderProvider = (props = {}) => {
 	return renderer;
 };
 
-const runCheck = async (now: number, file: object | null = versionsFile) => {
-	mockGetVersionsInfo.mockResolvedValueOnce({versionsFile: file, now});
+const runCheck = async (now: number, file: object | null = versionsFile, isFresh = true) => {
+	mockGetVersionsInfo.mockResolvedValueOnce({versionsFile: file, now, isFresh});
 	await act(async () => {
 		await checkVersion();
 	});
@@ -111,6 +111,9 @@ describe('VersionCheckProvider', () => {
 		});
 		mockIsUpdateAvailable.mockResolvedValue(false);
 		mockGetJanisAppInfo.mockReturnValue({env: 'janisqa', app: 'picking', buildNumber: '2300'});
+		// A skipped check leaves its queued response unconsumed; it must not leak into the next test
+		mockGetVersionsInfo.mockReset();
+		(global as any).__DEV__ = false;
 	});
 
 	it('renders the children and checks the versions of its env and app', async () => {
@@ -130,6 +133,27 @@ describe('VersionCheckProvider', () => {
 		});
 
 		expect(mockGetVersionsInfo).not.toHaveBeenCalled();
+	});
+
+	describe('development build', () => {
+		const setDev = (isDev: boolean) => {
+			(global as any).__DEV__ = isDev;
+		};
+
+		afterEach(() => setDev(false));
+
+		it.each([
+			['skips the check in a dev build', true, false, 0],
+			['checks a dev build with debug on, to try the flows', true, true, 1],
+			['checks a published build even without debug', false, false, 1],
+		])('%s', async (_, isDev, debug, fetches) => {
+			setDev(isDev as boolean);
+			renderProvider({debug});
+
+			await runCheck(BEFORE_WARNING_TIME);
+
+			expect(mockGetVersionsInfo).toHaveBeenCalledTimes(fetches as number);
+		});
 	});
 
 	it.each([
@@ -239,6 +263,14 @@ describe('VersionCheckProvider', () => {
 				currentBuildNumber: '2500',
 			});
 			expect(getPrompt(renderer).props.title).toBe(texts.updateAvailableTitle);
+		});
+
+		it('is not offered offline from the saved file, since it could not be downloaded', async () => {
+			const renderer = renderProvider();
+			await runCheck(BEFORE_WARNING_TIME, versionsFile, false);
+
+			expect(getPrompt(renderer)).toBeUndefined();
+			expect(mockIsUpdateAvailable).not.toHaveBeenCalled();
 		});
 
 		it('is not offered when the install channel has nothing newer', async () => {

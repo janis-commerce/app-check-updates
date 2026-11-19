@@ -67,7 +67,7 @@ describe('getVersionsInfo', () => {
 
 		const response = await getVersionsInfo({env: 'janisqa', app: 'picking'});
 
-		expect(response).toEqual({versionsFile, now: serverTime});
+		expect(response).toEqual({versionsFile, now: serverTime, isFresh: true});
 		expect(mockStorageSet).toHaveBeenCalledWith('versionsFile', versionsFile);
 		expect(mockStorageSet).toHaveBeenCalledWith('lastServerTime', serverTime);
 	});
@@ -88,7 +88,7 @@ describe('getVersionsInfo', () => {
 
 		const response = await getVersionsInfo({env: 'janisqa', app: 'picking'});
 
-		expect(response).toEqual({versionsFile, now: lastServerTime});
+		expect(response).toEqual({versionsFile, now: lastServerTime, isFresh: true});
 		expect(mockStorageSet).not.toHaveBeenCalledWith('lastServerTime', expect.anything());
 	});
 
@@ -99,7 +99,7 @@ describe('getVersionsInfo', () => {
 
 		const response = await getVersionsInfo({env: 'janisqa', app: 'picking'});
 
-		expect(response).toEqual({versionsFile: savedFile, now: DEVICE_TIME});
+		expect(response).toEqual({versionsFile: savedFile, now: DEVICE_TIME, isFresh: false});
 		expect(mockStorageSet).not.toHaveBeenCalled();
 	});
 
@@ -109,7 +109,7 @@ describe('getVersionsInfo', () => {
 
 		const response = await getVersionsInfo({env: 'janisqa', app: 'picking'});
 
-		expect(response).toEqual({versionsFile, now: DEVICE_TIME});
+		expect(response).toEqual({versionsFile, now: DEVICE_TIME, isFresh: false});
 		expect(mockStorageSet).not.toHaveBeenCalled();
 	});
 
@@ -126,7 +126,7 @@ describe('getVersionsInfo', () => {
 
 			const response = await getVersionsInfo({env: 'janisqa', app: 'picking'});
 
-			expect(response).toEqual({versionsFile, now: lastServerTime});
+			expect(response).toEqual({versionsFile, now: lastServerTime, isFresh: false});
 		});
 
 		it('uses the device time when it is ahead of the saved server time', async () => {
@@ -134,13 +134,13 @@ describe('getVersionsInfo', () => {
 
 			const response = await getVersionsInfo({env: 'janisqa', app: 'picking'});
 
-			expect(response).toEqual({versionsFile, now: DEVICE_TIME});
+			expect(response).toEqual({versionsFile, now: DEVICE_TIME, isFresh: false});
 		});
 
 		it('returns no file and the device time when nothing was saved', async () => {
 			const response = await getVersionsInfo({env: 'janisqa', app: 'picking'});
 
-			expect(response).toEqual({versionsFile: null, now: DEVICE_TIME});
+			expect(response).toEqual({versionsFile: null, now: DEVICE_TIME, isFresh: false});
 		});
 	});
 });

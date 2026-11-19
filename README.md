@@ -27,11 +27,12 @@ The current time comes from the server (`Date` + `Age` headers). Offline, the la
 
 ### Props
 
-| Prop               | Type              | Description                                                         |
-| ------------------ | ----------------- | ------------------------------------------------------------------- |
-| texts              | (required) Object | Translated texts, see below                                         |
-| warningTtl         | (optional) Number | Minutes the warning stays hidden after Later. Default 120           |
-| updateAvailableTtl | (optional) Number | Minutes the new version modal stays hidden after Later. Default 120 |
+| Prop               | Type              | Description                                                                                                           |
+| ------------------ | ----------------- | --------------------------------------------------------------------------------------------------------------------- |
+| texts              | (required) Object | Translated texts, see below                                                                                           |
+| warningTtl         | (optional) Number | Minutes the warning stays hidden after Later. Default 120                                                             |
+| updateAvailableTtl | (optional) Number | Minutes the new version modal stays hidden after Later. Default 120                                                   |
+| debug              | (optional) Bool   | Also checks on development builds (`__DEV__`), to try the flows locally. Published builds always check. Default false |
 
 `texts` keys: `warningTitle`, `blockingTitle`, `updateAvailableTitle`, `updateAvailableMessage`, `updateButton`, `laterButton`, `updateUnavailable` (Play Store doesn't offer the new version yet), `updateFailed`, and `warningMessage` / `blockingMessage`, which are functions that receive the blocking `Date` so the app formats it in the user's language.
 
@@ -96,7 +97,7 @@ This package requires the following peer dependencies to be installed in your ap
 | [sp-react-native-in-app-updates](https://www.npmjs.com/package/sp-react-native-in-app-updates) | >= 1.2.0  |
 | [react-native-fs](https://www.npmjs.com/package/react-native-fs)                               | >= 2.20.0 |
 | [@janiscommerce/ui-native](https://www.npmjs.com/package/@janiscommerce/ui-native)             | >= 2.5.0  |
-| [@janiscommerce/app-storage](https://www.npmjs.com/package/@janiscommerce/app-storage)         | >= 1.2.0  |
+| [@janiscommerce/app-storage](https://www.npmjs.com/package/@janiscommerce/app-storage)         | >= 1.3.0  |
 | [@janiscommerce/app-device-info](https://www.npmjs.com/package/@janiscommerce/app-device-info) | >= 1.4.0  |
 | [@janiscommerce/app-crashlytics](https://www.npmjs.com/package/@janiscommerce/app-crashlytics) | >= 2.1.0  |
 
