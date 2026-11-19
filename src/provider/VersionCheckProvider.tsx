@@ -1,4 +1,5 @@
 import React, {ReactNode, createContext, useCallback, useContext, useMemo, useState} from 'react';
+import getJanisAppInfo, {JanisAppInfo} from '../lib/appInfo';
 import getVersionsInfo from '../lib/versions/getVersionsInfo';
 import resolveVersionStatus from '../lib/minVersion/resolveVersionStatus';
 import updateApp from '../lib/install/updateApp';
@@ -9,9 +10,6 @@ import UpdatePromptModal from '../ui/UpdatePromptModal';
 import BlockingScreen from '../ui/BlockingScreen';
 
 interface VersionCheckProviderProps {
-	env: 'janisdev' | 'janisqa' | 'janis';
-	app: 'picking' | 'delivery' | 'wms';
-	buildNumber: string;
 	texts: VersionCheckTexts;
 	warningTtl?: number;
 	updateAvailableTtl?: number;
@@ -30,25 +28,26 @@ const VersionCheckContext = createContext({checkVersion: async () => {}});
 /**
  * @name VersionCheckProvider
  * @description wraps the logged-in app and, when checkVersion is called, shows the blocking screen, the min version warning or the new version modal, in that priority
- * @param {string} env environment of janis
- * @param {string} app App name
- * @param {string} buildNumber current build number of the App
  * @param {object} texts translated texts; the min version messages receive the blocking date to format it
  * @param {number} warningTtl minutes the warning stays hidden after the user postpones it (default 120)
  * @param {number} updateAvailableTtl minutes the new version modal stays hidden after the user postpones it (default 120)
  */
 export const VersionCheckProvider = ({
-	env,
-	app,
-	buildNumber,
 	texts,
 	warningTtl = DEFAULT_TTL_MINUTES,
 	updateAvailableTtl = DEFAULT_TTL_MINUTES,
 	children,
 }: VersionCheckProviderProps) => {
 	const [visibleModal, setVisibleModal] = useState<VisibleModal | null>(null);
+	const appInfo = useMemo(getJanisAppInfo, []);
 
 	const checkVersion = useCallback(async () => {
+		// Without a Janis bundle there is no versions.json to read
+		if (!appInfo) {
+			return;
+		}
+
+		const {env, app, buildNumber} = appInfo;
 		// Once blocked the app stays blocked until it restarts, whatever a later check resolves
 		const showModal = (modal: VisibleModal) =>
 			setVisibleModal((current) => (current?.type === 'blocking' ? current : modal));
@@ -89,11 +88,13 @@ export const VersionCheckProvider = ({
 		) {
 			showModal({type: 'updateAvailable', newVersionNumber});
 		}
-	}, [env, app, buildNumber]);
+	}, [appInfo]);
 
 	const contextValue = useMemo(() => ({checkVersion}), [checkVersion]);
 
-	const update = (newVersionNumber: string) => updateApp({env, app, buildNumber, newVersionNumber});
+	// A modal is only shown after checkVersion found the app info
+	const update = (newVersionNumber: string) =>
+		updateApp({...(appInfo as JanisAppInfo), newVersionNumber});
 
 	const postpone = (modal: DismissibleModal, ttl: number) => {
 		dismiss(modal, ttl);

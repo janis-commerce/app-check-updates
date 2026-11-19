@@ -2,6 +2,7 @@ import React from 'react';
 import TestRenderer, {act, ReactTestRenderer} from 'react-test-renderer';
 import Storage from '@janiscommerce/app-storage';
 import {Button, Modal, ScreenActions, Typography} from '@janiscommerce/ui-native';
+import getJanisAppInfo from '../lib/appInfo';
 import getVersionsInfo from '../lib/versions/getVersionsInfo';
 import updateApp from '../lib/install/updateApp';
 import isUpdateAvailable from '../lib/install/isUpdateAvailable';
@@ -9,10 +10,12 @@ import UpdatePromptModal from '../ui/UpdatePromptModal';
 import BlockingScreen from '../ui/BlockingScreen';
 import {VersionCheckProvider, useVersionCheck} from './VersionCheckProvider';
 
+jest.mock('../lib/appInfo', () => ({__esModule: true, default: jest.fn()}));
 jest.mock('../lib/versions/getVersionsInfo', () => ({__esModule: true, default: jest.fn()}));
 jest.mock('../lib/install/updateApp', () => ({__esModule: true, default: jest.fn()}));
 jest.mock('../lib/install/isUpdateAvailable', () => ({__esModule: true, default: jest.fn()}));
 
+const mockGetJanisAppInfo = getJanisAppInfo as jest.Mock;
 const mockGetVersionsInfo = getVersionsInfo as jest.Mock;
 const mockUpdateApp = updateApp as jest.Mock;
 const mockIsUpdateAvailable = isUpdateAvailable as jest.Mock;
@@ -59,7 +62,7 @@ const renderProvider = (props = {}) => {
 	let renderer!: ReactTestRenderer;
 	act(() => {
 		renderer = TestRenderer.create(
-			<VersionCheckProvider env="janisqa" app="picking" buildNumber="2300" texts={texts} {...props}>
+			<VersionCheckProvider texts={texts} {...props}>
 				<Probe />
 			</VersionCheckProvider>
 		);
@@ -107,6 +110,7 @@ describe('VersionCheckProvider', () => {
 			saved[key] = value;
 		});
 		mockIsUpdateAvailable.mockResolvedValue(false);
+		mockGetJanisAppInfo.mockReturnValue({env: 'janisqa', app: 'picking', buildNumber: '2300'});
 	});
 
 	it('renders the children and checks the versions of its env and app', async () => {
@@ -115,6 +119,17 @@ describe('VersionCheckProvider', () => {
 
 		expect(renderer.root.findAllByType(Probe)).toHaveLength(1);
 		expect(mockGetVersionsInfo).toHaveBeenCalledWith({env: 'janisqa', app: 'picking'});
+	});
+
+	it('does nothing when the app is not a Janis one', async () => {
+		mockGetJanisAppInfo.mockReturnValue(null);
+		renderProvider();
+
+		await act(async () => {
+			await checkVersion();
+		});
+
+		expect(mockGetVersionsInfo).not.toHaveBeenCalled();
 	});
 
 	it.each([
@@ -127,7 +142,8 @@ describe('VersionCheckProvider', () => {
 			'2300',
 		],
 	])('shows nothing when %s', async (_, now, file, buildNumber) => {
-		const renderer = renderProvider({buildNumber});
+		mockGetJanisAppInfo.mockReturnValue({env: 'janisqa', app: 'picking', buildNumber});
+		const renderer = renderProvider();
 		await runCheck(now, file);
 
 		expect(renderer.root.findAllByType(UpdatePromptModal)).toHaveLength(0);
