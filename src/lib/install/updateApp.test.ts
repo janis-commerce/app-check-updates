@@ -16,11 +16,11 @@ jest.mock('sp-react-native-in-app-updates', () => ({
 	IAUUpdateKind: {FLEXIBLE: 0, IMMEDIATE: 1},
 }));
 
-jest.mock('../updateFromJanis', () => ({__esModule: true, default: jest.fn()}));
+jest.mock('./updateFromJanis', () => ({__esModule: true, default: jest.fn()}));
 
 import {NativeModules} from 'react-native';
-import updateFromJanis from '../updateFromJanis';
-import Crashlytics from '../../utils/crashlytics';
+import updateFromJanis from './updateFromJanis';
+import Crashlytics from '../crashlytics';
 import updateApp from './updateApp';
 
 const mockGetInstallerPackageName = NativeModules.ApkInstaller.getInstallerPackageName as jest.Mock;

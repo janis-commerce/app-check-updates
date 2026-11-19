@@ -1,5 +1,5 @@
 import Storage from '@janiscommerce/app-storage';
-import Crashlytics from '../../utils/crashlytics';
+import Crashlytics from '../crashlytics';
 import getVersionsInfo from './getVersionsInfo';
 
 const storage = new Storage();

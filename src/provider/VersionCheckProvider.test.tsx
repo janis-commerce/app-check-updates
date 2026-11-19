@@ -1,14 +1,14 @@
 import React from 'react';
 import TestRenderer, {act, ReactTestRenderer} from 'react-test-renderer';
 import {Button, Modal, ScreenActions, Typography} from '@janiscommerce/ui-native';
-import getVersionsInfo from './getVersionsInfo';
-import updateApp from './updateApp';
-import WarningModal from './WarningModal';
-import BlockingScreen from './BlockingScreen';
+import getVersionsInfo from '../lib/versions/getVersionsInfo';
+import updateApp from '../lib/install/updateApp';
+import WarningModal from '../ui/WarningModal';
+import BlockingScreen from '../ui/BlockingScreen';
 import {VersionCheckProvider, useVersionCheck} from './VersionCheckProvider';
 
-jest.mock('./getVersionsInfo', () => ({__esModule: true, default: jest.fn()}));
-jest.mock('./updateApp', () => ({__esModule: true, default: jest.fn()}));
+jest.mock('../lib/versions/getVersionsInfo', () => ({__esModule: true, default: jest.fn()}));
+jest.mock('../lib/install/updateApp', () => ({__esModule: true, default: jest.fn()}));
 
 const mockGetVersionsInfo = getVersionsInfo as jest.Mock;
 const mockUpdateApp = updateApp as jest.Mock;

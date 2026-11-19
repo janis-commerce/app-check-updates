@@ -1,6 +1,6 @@
-import {isString} from '../../utils';
+import {isString} from '../utils';
 import type {VersionsFile} from './getVersionsInfo';
-import type {MinVersion} from './resolveVersionStatus';
+import type {MinVersion} from '../minVersion/resolveVersionStatus';
 
 const isDate = (value: unknown) => isString(value) && !Number.isNaN(Date.parse(value as string));
 

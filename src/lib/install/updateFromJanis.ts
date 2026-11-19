@@ -1,7 +1,7 @@
 import {PermissionsAndroid, Platform, NativeModules} from 'react-native';
 import RNFS from 'react-native-fs';
-import {isDevEnv, isString} from '../../utils';
-import Crashlytics from '../../utils/crashlytics';
+import {isDevEnv, isString} from '../utils';
+import Crashlytics from '../crashlytics';
 
 const {ApkInstaller} = NativeModules;
 

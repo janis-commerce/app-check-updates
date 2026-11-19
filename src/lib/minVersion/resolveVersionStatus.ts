@@ -1,4 +1,4 @@
-import {isValidMinVersion} from './validateVersionsFile';
+import {isValidMinVersion} from '../versions/validateVersionsFile';
 
 export interface MinVersion {
 	buildNumber: string;

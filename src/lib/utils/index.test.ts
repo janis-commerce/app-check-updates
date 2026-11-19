@@ -6,7 +6,7 @@ import {
 	defaultResponse,
 	isString,
 } from './index';
-import mock from '../../__mocks__/janisMock.json';
+import mock from '../../../__mocks__/janisMock.json';
 
 const mockInstallUpdate = jest.fn();
 

@@ -10,8 +10,8 @@ jest.mock('react-native', () => {
 
 import {NativeModules} from 'react-native';
 import RNFS from 'react-native-fs';
-import * as utils from '../../utils';
-import updateFromJanis from './index';
+import * as utils from '../utils';
+import updateFromJanis from './updateFromJanis';
 
 const mockIsDevEnv = jest.spyOn(utils, 'isDevEnv');
 const mockInstall = NativeModules.ApkInstaller.install as jest.Mock;

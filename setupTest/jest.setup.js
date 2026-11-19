@@ -77,7 +77,7 @@ jest.mock('@janiscommerce/ui-native', () => ({
 	ScreenActions: () => null,
 }));
 
-jest.mock('../src/utils/crashlytics/index.ts', () => ({
+jest.mock('../src/lib/crashlytics/index.ts', () => ({
 	__esModule: true,
 	default: {
 		log: jest.fn(),

@@ -1,7 +1,7 @@
 import {NativeModules} from 'react-native';
 import SpInAppUpdates, {IAUUpdateKind} from 'sp-react-native-in-app-updates';
-import updateFromJanis from '../updateFromJanis';
-import Crashlytics from '../../utils/crashlytics';
+import updateFromJanis from './updateFromJanis';
+import Crashlytics from '../crashlytics';
 
 const {ApkInstaller} = NativeModules;
 

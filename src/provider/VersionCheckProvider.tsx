@@ -7,12 +7,12 @@ import React, {
 	useRef,
 	useState,
 } from 'react';
-import getVersionsInfo from './getVersionsInfo';
-import resolveVersionStatus from './resolveVersionStatus';
-import updateApp from './updateApp';
-import {VersionCheckTexts} from './texts';
-import WarningModal from './WarningModal';
-import BlockingScreen from './BlockingScreen';
+import getVersionsInfo from '../lib/versions/getVersionsInfo';
+import resolveVersionStatus from '../lib/minVersion/resolveVersionStatus';
+import updateApp from '../lib/install/updateApp';
+import {VersionCheckTexts} from '../ui/texts';
+import WarningModal from '../ui/WarningModal';
+import BlockingScreen from '../ui/BlockingScreen';
 
 interface VersionCheckProviderProps {
 	env: 'janisdev' | 'janisqa' | 'janis';

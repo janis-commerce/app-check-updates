@@ -1,7 +1,7 @@
 import {Platform} from 'react-native';
 import SpInAppUpdates, {IAUUpdateKind, StartUpdateOptions} from 'sp-react-native-in-app-updates';
-import {isDevEnv, customVersionComparator, onStatusUpdate, isString} from '../../utils';
-import Crashlytics from '../../utils/crashlytics';
+import {isDevEnv, customVersionComparator, onStatusUpdate, isString} from '../utils';
+import Crashlytics from '../crashlytics';
 
 interface IappCheckUpdates {
 	buildNumber: string;

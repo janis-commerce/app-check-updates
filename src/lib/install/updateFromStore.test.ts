@@ -1,6 +1,6 @@
 import {Platform} from 'react-native';
-import updateFromStore from './index';
-import * as utils from '../../utils';
+import updateFromStore from './updateFromStore';
+import * as utils from '../utils';
 import mock from '../../../__mocks__/storeMock.json';
 
 const mockStartUpdate = jest.fn();

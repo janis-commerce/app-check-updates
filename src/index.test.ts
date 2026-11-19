@@ -1,7 +1,7 @@
 import {NativeModules} from 'react-native';
-import * as utils from './utils';
-import {defaultResponse} from './utils';
-import * as updateFromStorefn from './modules/updateFromStore';
+import * as utils from './lib/utils';
+import {defaultResponse} from './lib/utils';
+import * as updateFromStorefn from './lib/install/updateFromStore';
 
 // Mock para nuestro módulo nativo ApkInstaller
 NativeModules.ApkInstaller = {

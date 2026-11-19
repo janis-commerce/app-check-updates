@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {Modal, ScreenActions, Typography} from '@janiscommerce/ui-native';
-import {UpdateResult} from './updateApp';
+import type {UpdateResult} from '../lib/install/updateApp';
 import {VersionCheckTexts} from './texts';
 
 interface BlockingScreenProps {

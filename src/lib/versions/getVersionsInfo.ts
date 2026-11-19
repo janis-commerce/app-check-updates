@@ -1,6 +1,6 @@
 import Storage from '@janiscommerce/app-storage';
-import Crashlytics from '../../utils/crashlytics';
-import {MinVersion} from './resolveVersionStatus';
+import Crashlytics from '../crashlytics';
+import {MinVersion} from '../minVersion/resolveVersionStatus';
 import {isValidVersionsFile} from './validateVersionsFile';
 
 export interface VersionsFile {

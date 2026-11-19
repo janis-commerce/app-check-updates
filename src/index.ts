@@ -1,7 +1,7 @@
-import updateFromStore from './modules/updateFromStore';
-import updateFromJanis from './modules/updateFromJanis';
-import {checkNeedsUpdateInJanis, defaultResponse} from './utils';
-import {VersionCheckProvider, useVersionCheck} from './modules/minVersion/VersionCheckProvider';
+import updateFromStore from './lib/install/updateFromStore';
+import updateFromJanis from './lib/install/updateFromJanis';
+import {checkNeedsUpdateInJanis, defaultResponse} from './lib/utils';
+import {VersionCheckProvider, useVersionCheck} from './provider/VersionCheckProvider';
 
 interface IappCheckUpdates {
 	buildNumber: string;

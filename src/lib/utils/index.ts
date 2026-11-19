@@ -1,5 +1,5 @@
 import SpInAppUpdates, {IAUInstallStatus, StatusUpdateEvent} from 'sp-react-native-in-app-updates';
-import Crashlytics from './crashlytics';
+import Crashlytics from '../crashlytics';
 /* istanbul ignore next */
 /**
  * @name isDevEnv
