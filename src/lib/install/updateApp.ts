@@ -1,11 +1,7 @@
-import {NativeModules} from 'react-native';
 import SpInAppUpdates, {IAUUpdateKind} from 'sp-react-native-in-app-updates';
 import updateFromJanis from './updateFromJanis';
+import getInstallSource from './getInstallSource';
 import Crashlytics from '../crashlytics';
-
-const {ApkInstaller} = NativeModules;
-
-const PLAY_STORE_INSTALLER = 'com.android.vending';
 
 export type UpdateResult = 'started' | 'unavailable' | 'failed';
 
@@ -45,9 +41,7 @@ const updateApp = async ({
 }: IupdateApp): Promise<UpdateResult> => {
 	try {
 		Crashlytics.log('updateApp:', {env, app, buildNumber, newVersionNumber});
-		const installer = await ApkInstaller.getInstallerPackageName();
-
-		if (installer === PLAY_STORE_INSTALLER) {
+		if ((await getInstallSource()) === 'playStore') {
 			return await updateFromPlayStore(buildNumber);
 		}
 

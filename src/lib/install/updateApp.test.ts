@@ -1,9 +1,3 @@
-jest.mock('react-native', () => {
-	const RN = jest.requireActual('react-native');
-	RN.NativeModules.ApkInstaller = {getInstallerPackageName: jest.fn()};
-	return RN;
-});
-
 const mockCheckNeedsUpdate = jest.fn();
 const mockStartUpdate = jest.fn();
 
@@ -17,13 +11,14 @@ jest.mock('sp-react-native-in-app-updates', () => ({
 }));
 
 jest.mock('./updateFromJanis', () => ({__esModule: true, default: jest.fn()}));
+jest.mock('./getInstallSource', () => ({__esModule: true, default: jest.fn()}));
 
-import {NativeModules} from 'react-native';
 import updateFromJanis from './updateFromJanis';
+import getInstallSource from './getInstallSource';
 import Crashlytics from '../crashlytics';
 import updateApp from './updateApp';
 
-const mockGetInstallerPackageName = NativeModules.ApkInstaller.getInstallerPackageName as jest.Mock;
+const mockGetInstallSource = getInstallSource as jest.Mock;
 const mockUpdateFromJanis = updateFromJanis as jest.Mock;
 
 const params = {
@@ -36,7 +31,7 @@ const params = {
 describe('updateApp', () => {
 	describe('installed from Play Store', () => {
 		beforeEach(() => {
-			mockGetInstallerPackageName.mockResolvedValue('com.android.vending');
+			mockGetInstallSource.mockResolvedValue('playStore');
 		});
 
 		it('starts an immediate update when Play offers a new version', async () => {
@@ -65,7 +60,7 @@ describe('updateApp', () => {
 
 	describe('installed from Janis Store', () => {
 		beforeEach(() => {
-			mockGetInstallerPackageName.mockResolvedValue(null);
+			mockGetInstallSource.mockResolvedValue('janis');
 		});
 
 		it('downloads the new version from Janis', async () => {
@@ -88,7 +83,7 @@ describe('updateApp', () => {
 	});
 
 	it('returns failed when the installer cannot be read', async () => {
-		mockGetInstallerPackageName.mockRejectedValueOnce(new Error('INSTALLER_ERROR'));
+		mockGetInstallSource.mockRejectedValueOnce(new Error('INSTALLER_ERROR'));
 
 		expect(await updateApp(params)).toBe('failed');
 	});
