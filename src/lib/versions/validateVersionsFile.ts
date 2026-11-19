@@ -14,7 +14,7 @@ const isBuildNumber = (value: unknown) =>
  * @returns {boolean}
  */
 export const isValidVersionsFile = (data: unknown): data is VersionsFile => {
-	if (!data || typeof data !== 'object') {
+	if (!data) {
 		return false;
 	}
 

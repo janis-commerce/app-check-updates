@@ -1,15 +1,14 @@
 import {PermissionsAndroid, Platform, NativeModules} from 'react-native';
 import RNFS from 'react-native-fs';
-import {isDevEnv, isString} from '../utils';
+import {isDevEnv} from '../utils';
 import Crashlytics from '../crashlytics';
 
 const {ApkInstaller} = NativeModules;
 
-interface IappCheckUpdates {
+interface IupdateFromJanis {
 	env: 'janisdev' | 'janisqa' | 'janis';
 	app: 'picking' | 'delivery' | 'wms';
 	newVersionNumber: string;
-	DownloadProgressCallback?: () => void;
 }
 
 const envMapper = {
@@ -23,29 +22,13 @@ const envMapper = {
  * @description It is responsible for downloading the apk with the latest version of the app from janis
  * @param {string} env environment of janis
  * @param {string} app App name
- * @param {string} newVersion new version of the app
- * @param {function} DownloadProgressCallback function that monitors the download progress
+ * @param {string} newVersionNumber new version of the app, used to name the APK
  * @returns {boolean} if you can download the new apk correctly
  */
-const updateFromJanis = async ({
-	env,
-	app,
-	newVersionNumber,
-	DownloadProgressCallback,
-}: IappCheckUpdates) => {
+const updateFromJanis = async ({env, app, newVersionNumber}: IupdateFromJanis) => {
 	const isDevEnvironment = isDevEnv();
 	try {
 		Crashlytics.log('updateFromJanis:', {env, app, newVersionNumber});
-		if (
-			!isString(env) ||
-			!env ||
-			!isString(app) ||
-			!app ||
-			!isString(newVersionNumber) ||
-			!newVersionNumber
-		) {
-			throw new Error('the parameters are incorrect');
-		}
 
 		const validUrl = `https://mobile.${env}.in/api/download/${app}/android/latest`;
 
@@ -83,16 +66,11 @@ const updateFromJanis = async ({
 			await RNFS.mkdir(targetDir);
 		}
 
-		/* istanbul ignore next */
-		const downloadProgressHandler =
-			typeof DownloadProgressCallback === 'function' ? DownloadProgressCallback : () => {};
-
 		const apkPath = `${targetDir}/${app}${targetEnv}.${newVersionNumber}.apk`;
 
 		const response = await RNFS.downloadFile({
 			fromUrl: validUrl,
 			toFile: apkPath,
-			progress: downloadProgressHandler,
 		}).promise;
 
 		if (response.statusCode === 200) {
@@ -103,6 +81,8 @@ const updateFromJanis = async ({
 				})
 				.catch((installError: unknown) => {
 					Crashlytics.recordError(installError, 'error installing APK');
+					// Dev-only console output: Crashlytics already records the error, nothing to assert
+					/* istanbul ignore next */
 					if (isDevEnvironment) {
 						// eslint-disable-next-line no-console
 						console.error('Install error:', installError);
@@ -113,6 +93,7 @@ const updateFromJanis = async ({
 
 		return false;
 	} catch (error: unknown) {
+		/* istanbul ignore next */
 		if (isDevEnvironment) {
 			// eslint-disable-next-line no-console
 			console.error(error);

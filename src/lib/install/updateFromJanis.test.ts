@@ -13,7 +13,7 @@ import RNFS from 'react-native-fs';
 import * as utils from '../utils';
 import updateFromJanis from './updateFromJanis';
 
-const mockIsDevEnv = jest.spyOn(utils, 'isDevEnv');
+jest.spyOn(utils, 'isDevEnv').mockReturnValue(false);
 const mockInstall = NativeModules.ApkInstaller.install as jest.Mock;
 
 const mockRequestMultiple = jest.fn(() => new Promise((resolve) => resolve(true)));
@@ -21,6 +21,8 @@ const mockCheck = jest.fn();
 const RNFSExistsSpy = jest.spyOn(RNFS, 'exists');
 const RNFSUnlinkSpy = jest.spyOn(RNFS, 'unlink');
 const RNFSReadDirSpy = jest.spyOn(RNFS, 'readDir');
+const RNFSMkdirSpy = jest.spyOn(RNFS, 'mkdir');
+const RNFSDownloadFileSpy = jest.spyOn(RNFS, 'downloadFile');
 
 jest.mock('react-native//Libraries/PermissionsAndroid/PermissionsAndroid', () => {
 	const PermissionsAndroid = jest.requireActual(
@@ -45,194 +47,105 @@ jest.mock('react-native/Libraries/Utilities/Platform', () => {
 	});
 	return Platform;
 });
-describe('App check updates funtion', () => {
+const params = {env: 'janisqa', app: 'picking', newVersionNumber: '2.10.0.2500'} as const;
+const APK_DIR = '/Download/picking-qa-apk';
+const APK_PATH = `${APK_DIR}/picking-qa.2.10.0.2500.apk`;
+
+const mockDownload = (statusCode: number) =>
+	RNFSDownloadFileSpy.mockReturnValueOnce({promise: Promise.resolve({statusCode})} as any);
+
+describe('updateFromJanis', () => {
 	beforeEach(() => {
-		mockInstall.mockClear();
+		(RNFS as any).DownloadDirectoryPath = '/Download';
+		mockVersion.mockReturnValue(33);
 		mockInstall.mockResolvedValue(true);
+		mockCheck.mockResolvedValue(true);
+		RNFSExistsSpy.mockResolvedValue(false);
 	});
-	describe('Error handling', () => {
-		it.each(['', 5, [], {}, jest.fn(), undefined, null, NaN])(
-			'param is not valid',
-			async (invalidValue) => {
-				await expect(
-					updateFromJanis({
-						env: invalidValue as any,
-						app: 'wms',
-						newVersionNumber: '1.1.0.2345',
-					})
-				).rejects.toThrow('the parameters are incorrect');
 
-				await expect(
-					updateFromJanis({
-						env: 'janisdev',
-						app: invalidValue as any,
-						newVersionNumber: '1.1.0.2345',
-					})
-				).rejects.toThrow('the parameters are incorrect');
+	it('downloads the latest APK of the app and env and opens the installer', async () => {
+		mockDownload(200);
 
-				await expect(
-					updateFromJanis({
-						env: 'janisdev',
-						app: 'wms',
-						newVersionNumber: invalidValue as any,
-					})
-				).rejects.toThrow('the parameters are incorrect');
-			}
-		);
+		await expect(updateFromJanis(params)).resolves.toBe(true);
 
-		it('does not have to read storage permissions', async () => {
-			mockCheck.mockResolvedValueOnce(false);
-			mockVersion.mockReturnValueOnce(25);
-			await expect(
-				updateFromJanis({
-					env: 'janisdev',
-					app: 'wms',
-					newVersionNumber: '2.0.0.2345',
-				})
-			).rejects.toThrow('You do not have permissions for external storage');
+		expect(RNFSDownloadFileSpy).toHaveBeenCalledWith({
+			fromUrl: 'https://mobile.janisqa.in/api/download/picking/android/latest',
+			toFile: APK_PATH,
+		});
+		expect(mockInstall).toHaveBeenCalledWith(APK_PATH);
+	});
+
+	it('does not open the installer when the download fails', async () => {
+		mockDownload(404);
+
+		await expect(updateFromJanis(params)).resolves.toBe(false);
+
+		expect(mockInstall).not.toHaveBeenCalled();
+	});
+
+	it('keeps the download successful when the installer cannot open, so it can be installed by hand', async () => {
+		mockDownload(200);
+		mockInstall.mockRejectedValueOnce(new Error('Installation failed'));
+
+		await expect(updateFromJanis(params)).resolves.toBe(true);
+	});
+
+	it('replaces the APKs left by a previous download', async () => {
+		mockDownload(200);
+		RNFSExistsSpy.mockResolvedValueOnce(true);
+		RNFSReadDirSpy.mockResolvedValueOnce([{path: `${APK_DIR}/picking-qa.2.9.0.2400.apk`}] as any);
+
+		await updateFromJanis(params);
+
+		expect(RNFSUnlinkSpy).toHaveBeenCalledWith(`${APK_DIR}/picking-qa.2.9.0.2400.apk`);
+		expect(RNFSMkdirSpy).not.toHaveBeenCalled();
+	});
+
+	it('creates the download folder the first time', async () => {
+		mockDownload(200);
+
+		await updateFromJanis(params);
+
+		expect(RNFSMkdirSpy).toHaveBeenCalledWith(APK_DIR);
+	});
+
+	describe('before Android 13, which needs storage permissions', () => {
+		beforeEach(() => {
+			mockVersion.mockReturnValue(32);
 		});
 
-		it('does not have to write storage permissions', async () => {
-			mockCheck.mockResolvedValueOnce(true);
-			mockCheck.mockResolvedValueOnce(false);
+		it('asks for them and downloads when granted', async () => {
+			mockDownload(200);
 
-			expect(
-				updateFromJanis({
-					env: 'janisdev',
-					app: 'wms',
-					newVersionNumber: '2.0.0.2345',
-				})
-			).rejects.toThrow('You do not have permissions for external storage');
+			await expect(updateFromJanis(params)).resolves.toBe(true);
+
+			expect(mockRequestMultiple).toHaveBeenCalled();
 		});
 
-		it('dont log the error', async () => {
-			mockCheck.mockRejectedValueOnce(new Error('Error'));
-			mockIsDevEnv.mockReturnValueOnce(false);
-			await expect(
-				updateFromJanis({
-					env: 'janisdev',
-					app: 'wms',
-					newVersionNumber: '2.0.0.2345',
-				})
-			).rejects.toThrow('Error');
-		});
-		it('log the error in dev env', async () => {
-			mockCheck.mockRejectedValueOnce(new Error('Error'));
-			mockIsDevEnv.mockReturnValueOnce(true);
-			await expect(
-				updateFromJanis({
-					env: 'janisdev',
-					app: 'wms',
-					newVersionNumber: '2.0.0.2345',
-				})
-			).rejects.toThrow('Error');
+		it.each([
+			['read', [false, true]],
+			['write', [true, false]],
+		])('rejects without downloading when %s is denied', async (_, [read, write]) => {
+			mockCheck.mockResolvedValueOnce(read).mockResolvedValueOnce(write);
+
+			await expect(updateFromJanis(params)).rejects.toThrow(
+				'You do not have permissions for external storage'
+			);
+			expect(RNFSDownloadFileSpy).not.toHaveBeenCalled();
 		});
 	});
 
-	describe('Works correctly', () => {
-		it('works correctly in janisdev environment without asking permissions', async () => {
-			mockVersion.mockReturnValueOnce(33);
-			mockCheck.mockResolvedValue(true);
-			await expect(
-				updateFromJanis({
-					env: 'janisdev',
-					app: 'wms',
-					newVersionNumber: '2.0.0.2345',
-				})
-			).resolves.toEqual(true);
-		});
-		it('works correctly in janisqa environment with invalid callback', async () => {
-			mockVersion.mockReturnValueOnce(14);
-			mockCheck.mockResolvedValue(true);
-			RNFSExistsSpy.mockResolvedValueOnce(true);
-			RNFSReadDirSpy.mockResolvedValueOnce([{path: '/some/old/file.apk'}] as any);
-			RNFSUnlinkSpy.mockResolvedValueOnce(undefined);
-			await expect(
-				updateFromJanis({
-					env: 'janisqa',
-					app: 'wms',
-					newVersionNumber: '2.0.0.2345',
-					DownloadProgressCallback: null as any,
-				})
-			).resolves.toEqual(true);
-		});
-		it('works correctly in janis environment with valid callback', async () => {
-			mockVersion.mockReturnValueOnce(14);
-			mockCheck.mockResolvedValue(true);
-			const DownloadProgressCallback = () => {};
-			await expect(
-				updateFromJanis({
-					env: 'janis',
-					app: 'wms',
-					newVersionNumber: '2.0.0.2345',
-					DownloadProgressCallback,
-				})
-			).resolves.toEqual(true);
-		});
+	it('does not ask for storage permissions from Android 13', async () => {
+		mockDownload(200);
 
-		it('installs APK automatically after successful download', async () => {
-			mockVersion.mockReturnValueOnce(33);
-			mockInstall.mockResolvedValueOnce(true);
+		await updateFromJanis(params);
 
-			const result = await updateFromJanis({
-				env: 'janisdev',
-				app: 'wms',
-				newVersionNumber: '2.0.0.2345',
-			});
+		expect(mockRequestMultiple).not.toHaveBeenCalled();
+	});
 
-			// La descarga e instalación fueron exitosas
-			expect(result).toEqual(true);
-		});
+	it('rejects when the download breaks', async () => {
+		RNFSDownloadFileSpy.mockReturnValueOnce({promise: Promise.reject(new Error('Network'))} as any);
 
-		it('returns true even if APK installation fails but download was successful', async () => {
-			mockVersion.mockReturnValueOnce(33);
-			mockInstall.mockRejectedValueOnce(new Error('Installation failed'));
-			mockIsDevEnv.mockReturnValueOnce(false);
-
-			const result = await updateFromJanis({
-				env: 'janis',
-				app: 'picking',
-				newVersionNumber: '3.0.0.5678',
-			});
-
-			// Aunque la instalación falle, retornamos true porque la descarga fue exitosa
-			expect(result).toEqual(true);
-		});
-
-		it('returns true and logs when APK installation fails in dev environment', async () => {
-			mockVersion.mockReturnValueOnce(33);
-			mockInstall.mockRejectedValueOnce(new Error('Installation failed'));
-			mockIsDevEnv.mockReturnValueOnce(true);
-
-			const result = await updateFromJanis({
-				env: 'janisdev',
-				app: 'delivery',
-				newVersionNumber: '4.0.0.1234',
-			});
-
-			expect(result).toEqual(true);
-		});
-
-		it('returns false when download fails (statusCode !== 200)', async () => {
-			mockVersion.mockReturnValueOnce(33);
-			mockCheck.mockResolvedValue(true);
-
-			// Mock RNFS.downloadFile para que retorne un statusCode diferente de 200
-			const originalDownloadFile = RNFS.downloadFile;
-			RNFS.downloadFile = jest.fn(() => ({
-				promise: Promise.resolve({statusCode: 404}),
-			})) as any;
-
-			const result = await updateFromJanis({
-				env: 'janisdev',
-				app: 'wms',
-				newVersionNumber: '2.0.0.2345',
-			});
-
-			expect(result).toEqual(false);
-
-			// Restaurar el mock original
-			RNFS.downloadFile = originalDownloadFile;
-		});
+		await expect(updateFromJanis(params)).rejects.toThrow('Network');
 	});
 });

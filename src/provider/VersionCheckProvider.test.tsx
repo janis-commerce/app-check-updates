@@ -305,6 +305,14 @@ describe('VersionCheckProvider', () => {
 			expect(getTexts(renderer)).toContain('Blocked since 2027-01-15T12:00:00.000Z');
 		});
 
+		it('does not ask the store for new versions while blocked', async () => {
+			renderProvider();
+
+			await runCheck(BLOCKING_TIME);
+
+			expect(mockIsUpdateAvailable).not.toHaveBeenCalled();
+		});
+
 		it('blocks even when the user postponed the warning', async () => {
 			saved = {'dismissed.warning': true};
 			const renderer = renderProvider();
