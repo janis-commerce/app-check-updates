@@ -1,8 +1,8 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {StyleSheet, View} from 'react-native';
 import {Modal, ScreenActions, Typography} from '@janiscommerce/ui-native';
-import type {UpdateResult} from '../lib/install/updateApp';
 import {VersionCheckTexts} from './texts';
+import useUpdateAction, {UpdateResult} from './useUpdateAction';
 
 interface BlockingScreenProps {
 	blockingDate: string;
@@ -28,20 +28,7 @@ const styles = StyleSheet.create({
 });
 
 const BlockingScreen = ({blockingDate, texts, onUpdate}: BlockingScreenProps) => {
-	const [isUpdating, setIsUpdating] = useState(false);
-	const [updateResult, setUpdateResult] = useState<UpdateResult | null>(null);
-
-	const feedbackByResult: Partial<Record<UpdateResult, string>> = {
-		unavailable: texts.updateUnavailable,
-		failed: texts.updateFailed,
-	};
-	const feedback = updateResult && feedbackByResult[updateResult];
-
-	const handleUpdate = async () => {
-		setIsUpdating(true);
-		setUpdateResult(await onUpdate());
-		setIsUpdating(false);
-	};
+	const {isUpdating, feedback, handleUpdate} = useUpdateAction(onUpdate, texts);
 
 	return (
 		<Modal visible fullScreen canClose={false}>

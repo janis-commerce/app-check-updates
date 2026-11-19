@@ -1,4 +1,4 @@
-import Storage from '@janiscommerce/app-storage';
+import storage from '../storage';
 import Crashlytics from '../crashlytics';
 import {MinVersion} from '../minVersion/resolveVersionStatus';
 import {isValidVersionsFile} from './validateVersionsFile';
@@ -16,8 +16,6 @@ interface IgetVersionsInfo {
 
 const VERSIONS_FILE_KEY = 'versionsFile';
 const SERVER_TIME_KEY = 'lastServerTime';
-
-const storage = new Storage({id: 'app-check-updates'});
 
 // The CDN may answer from its cache: Age is the seconds elapsed since the origin stamped Date
 const getServerTime = (headers: Headers) =>
