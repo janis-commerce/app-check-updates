@@ -6,6 +6,7 @@ import getJanisAppInfo from '../lib/appInfo';
 import getVersionsInfo from '../lib/versions/getVersionsInfo';
 import updateApp from '../lib/install/updateApp';
 import isUpdateAvailable from '../lib/install/isUpdateAvailable';
+import getInstallSource from '../lib/install/getInstallSource';
 import UpdatePromptModal from '../ui/UpdatePromptModal';
 import BlockingScreen from '../ui/BlockingScreen';
 import {VersionCheckProvider, useVersionCheck} from './VersionCheckProvider';
@@ -14,11 +15,13 @@ jest.mock('../lib/appInfo', () => ({__esModule: true, default: jest.fn()}));
 jest.mock('../lib/versions/getVersionsInfo', () => ({__esModule: true, default: jest.fn()}));
 jest.mock('../lib/install/updateApp', () => ({__esModule: true, default: jest.fn()}));
 jest.mock('../lib/install/isUpdateAvailable', () => ({__esModule: true, default: jest.fn()}));
+jest.mock('../lib/install/getInstallSource', () => ({__esModule: true, default: jest.fn()}));
 
 const mockGetJanisAppInfo = getJanisAppInfo as jest.Mock;
 const mockGetVersionsInfo = getVersionsInfo as jest.Mock;
 const mockUpdateApp = updateApp as jest.Mock;
 const mockIsUpdateAvailable = isUpdateAvailable as jest.Mock;
+const mockGetInstallSource = getInstallSource as jest.Mock;
 
 const storage = new Storage();
 const mockStorageGet = storage.get as jest.Mock;
@@ -110,6 +113,7 @@ describe('VersionCheckProvider', () => {
 			saved[key] = value;
 		});
 		mockIsUpdateAvailable.mockResolvedValue(false);
+		mockGetInstallSource.mockResolvedValue('janis');
 		mockGetJanisAppInfo.mockReturnValue({env: 'janisqa', app: 'picking', buildNumber: '2300'});
 		// A skipped check leaves its queued response unconsumed; it must not leak into the next test
 		mockGetVersionsInfo.mockReset();
@@ -230,8 +234,20 @@ describe('VersionCheckProvider', () => {
 				app: 'picking',
 				buildNumber: '2300',
 				newVersionNumber: '2.10.0.2500',
+				mode: 'flexible',
 			});
 			expect(getTexts(renderer)).toContain(texts.updateFailed);
+		});
+
+		it('is postponed once the update started, since it goes on in the background', async () => {
+			mockUpdateApp.mockResolvedValueOnce('started');
+			const renderer = renderProvider();
+			await runCheck(WARNING_TIME);
+
+			await pressButton(renderer, texts.updateButton);
+
+			expect(getPrompt(renderer)).toBeUndefined();
+			expect(mockStorageSet).toHaveBeenCalledWith('dismissed.warning', true, {expiresAt: 120});
 		});
 
 		it.each([
@@ -310,6 +326,34 @@ describe('VersionCheckProvider', () => {
 			});
 		});
 
+		it('cannot be postponed while the update is downloading', async () => {
+			let resolveUpdate!: (result: string) => void;
+			mockUpdateApp.mockReturnValueOnce(new Promise((resolve) => (resolveUpdate = resolve)));
+			const renderer = renderProvider();
+			await runCheck(BEFORE_WARNING_TIME);
+
+			act(() => {
+				renderer.root
+					.findAllByType(Button)
+					.find(({props}) => props.value === texts.updateButton)
+					?.props.onPress();
+			});
+			await pressButton(renderer, texts.laterButton);
+			act(() => renderer.root.findByType(Modal).props.oncloseCallback());
+
+			expect(getPrompt(renderer).props.title).toBe(texts.updateAvailableTitle);
+			expect(mockStorageSet).not.toHaveBeenCalledWith(
+				'dismissed.updateAvailable',
+				true,
+				expect.anything()
+			);
+
+			await act(async () => resolveUpdate('failed'));
+			await pressButton(renderer, texts.laterButton);
+
+			expect(getPrompt(renderer)).toBeUndefined();
+		});
+
 		it('updates to the latest version', async () => {
 			mockUpdateApp.mockResolvedValueOnce('unavailable');
 			const renderer = renderProvider();
@@ -318,9 +362,67 @@ describe('VersionCheckProvider', () => {
 			await pressButton(renderer, texts.updateButton);
 
 			expect(mockUpdateApp).toHaveBeenCalledWith(
-				expect.objectContaining({newVersionNumber: '2.10.0.2500'})
+				expect.objectContaining({newVersionNumber: '2.10.0.2500', mode: 'flexible'})
 			);
 			expect(getTexts(renderer)).toContain(texts.updateUnavailable);
+		});
+
+		it('is postponed once the update started', async () => {
+			mockUpdateApp.mockResolvedValueOnce('started');
+			const renderer = renderProvider();
+			await runCheck(BEFORE_WARNING_TIME);
+
+			await pressButton(renderer, texts.updateButton);
+
+			expect(getPrompt(renderer)).toBeUndefined();
+			expect(mockStorageSet).toHaveBeenCalledWith('dismissed.updateAvailable', true, {
+				expiresAt: 120,
+			});
+		});
+
+		it('is offered with our modal when the install channel cannot be read', async () => {
+			mockGetInstallSource.mockRejectedValue(new Error('no native module'));
+			const renderer = renderProvider();
+			await runCheck(BEFORE_WARNING_TIME);
+
+			expect(getPrompt(renderer).props.title).toBe(texts.updateAvailableTitle);
+			expect(mockUpdateApp).not.toHaveBeenCalled();
+		});
+
+		describe('installed from Play Store', () => {
+			beforeEach(() => {
+				mockGetInstallSource.mockResolvedValue('playStore');
+			});
+
+			it('opens the Play dialog instead of our modal', async () => {
+				const renderer = renderProvider();
+				await runCheck(BEFORE_WARNING_TIME);
+
+				expect(getPrompt(renderer)).toBeUndefined();
+				expect(mockUpdateApp).toHaveBeenCalledWith({
+					env: 'janisqa',
+					app: 'picking',
+					buildNumber: '2300',
+					newVersionNumber: '2.10.0.2500',
+					mode: 'flexible',
+				});
+			});
+
+			it('does not open it again until the TTL the app configures expires', async () => {
+				renderProvider({updateAvailableTtl: 15});
+				await runCheck(BEFORE_WARNING_TIME);
+
+				expect(mockStorageSet).toHaveBeenCalledWith('dismissed.updateAvailable', true, {
+					expiresAt: 15,
+				});
+
+				await runCheck(BEFORE_WARNING_TIME);
+				expect(mockUpdateApp).toHaveBeenCalledTimes(1);
+
+				expireDismissals();
+				await runCheck(BEFORE_WARNING_TIME);
+				expect(mockUpdateApp).toHaveBeenCalledTimes(2);
+			});
 		});
 	});
 
@@ -380,6 +482,7 @@ describe('VersionCheckProvider', () => {
 				app: 'picking',
 				buildNumber: '2300',
 				newVersionNumber: '2.10.0.2500',
+				mode: 'immediate',
 			});
 
 			await act(async () => resolveUpdate('started'));

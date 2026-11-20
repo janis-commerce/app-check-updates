@@ -2,8 +2,9 @@ import React, {ReactNode, createContext, useCallback, useContext, useMemo, useSt
 import getJanisAppInfo, {JanisAppInfo} from '../lib/appInfo';
 import getVersionsInfo from '../lib/versions/getVersionsInfo';
 import resolveVersionStatus from '../lib/minVersion/resolveVersionStatus';
-import updateApp from '../lib/install/updateApp';
+import updateApp, {UpdateMode} from '../lib/install/updateApp';
 import isUpdateAvailable from '../lib/install/isUpdateAvailable';
+import getInstallSource from '../lib/install/getInstallSource';
 import {DismissibleModal, dismiss, isDismissed} from '../lib/dismissals';
 import {VersionCheckTexts} from '../ui/texts';
 import UpdatePromptModal from '../ui/UpdatePromptModal';
@@ -94,21 +95,46 @@ export const VersionCheckProvider = ({
 		}
 
 		if (
-			await isUpdateAvailable({buildNumber, currentBuildNumber: versionsFile.currentBuildNumber})
+			!(await isUpdateAvailable({buildNumber, currentBuildNumber: versionsFile.currentBuildNumber}))
 		) {
-			showModal({type: 'updateAvailable', newVersionNumber});
+			return;
 		}
-	}, [appInfo, debug]);
+
+		const source = await getInstallSource().catch(() => 'janis');
+
+		// Play shows its own dialog, which has no memory of a rejection, so the TTL is what keeps it from
+		// popping up on every check
+		if (source === 'playStore') {
+			dismiss('updateAvailable', updateAvailableTtl);
+			await updateApp({env, app, buildNumber, newVersionNumber, mode: 'flexible'});
+			return;
+		}
+
+		showModal({type: 'updateAvailable', newVersionNumber});
+	}, [appInfo, debug, updateAvailableTtl]);
 
 	const contextValue = useMemo(() => ({checkVersion}), [checkVersion]);
 
 	// A modal is only shown after checkVersion found the app info
-	const update = (newVersionNumber: string) =>
-		updateApp({...(appInfo as JanisAppInfo), newVersionNumber});
+	const update = (newVersionNumber: string, mode: UpdateMode) =>
+		updateApp({...(appInfo as JanisAppInfo), newVersionNumber, mode});
 
 	const postpone = (modal: DismissibleModal, ttl: number) => {
 		dismiss(modal, ttl);
 		setVisibleModal(null);
+	};
+
+	// Once the update started it goes on in the background, so the prompt gets out of the way until its TTL
+	const updateAndPostpone = async (
+		modal: DismissibleModal,
+		ttl: number,
+		newVersionNumber: string
+	) => {
+		const result = await update(newVersionNumber, 'flexible');
+		if (result === 'started') {
+			postpone(modal, ttl);
+		}
+		return result;
 	};
 
 	return (
@@ -118,7 +144,7 @@ export const VersionCheckProvider = ({
 				<BlockingScreen
 					blockingDate={visibleModal.blockingDate}
 					texts={texts}
-					onUpdate={() => update(visibleModal.newVersionNumber)}
+					onUpdate={() => update(visibleModal.newVersionNumber, 'immediate')}
 				/>
 			)}
 			{visibleModal?.type === 'warning' && (
@@ -126,7 +152,7 @@ export const VersionCheckProvider = ({
 					title={texts.warningTitle}
 					message={texts.warningMessage(new Date(visibleModal.blockingDate))}
 					texts={texts}
-					onUpdate={() => update(visibleModal.newVersionNumber)}
+					onUpdate={() => updateAndPostpone('warning', warningTtl, visibleModal.newVersionNumber)}
 					onClose={() => postpone('warning', warningTtl)}
 				/>
 			)}
@@ -135,7 +161,9 @@ export const VersionCheckProvider = ({
 					title={texts.updateAvailableTitle}
 					message={texts.updateAvailableMessage}
 					texts={texts}
-					onUpdate={() => update(visibleModal.newVersionNumber)}
+					onUpdate={() =>
+						updateAndPostpone('updateAvailable', updateAvailableTtl, visibleModal.newVersionNumber)
+					}
 					onClose={() => postpone('updateAvailable', updateAvailableTtl)}
 				/>
 			)}

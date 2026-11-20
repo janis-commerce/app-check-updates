@@ -31,8 +31,16 @@ const styles = StyleSheet.create({
 const UpdatePromptModal = ({title, message, texts, onUpdate, onClose}: UpdatePromptModalProps) => {
 	const {isUpdating, feedback, handleUpdate} = useUpdateAction(onUpdate, texts);
 
+	// Closing mid-download would not stop it: the installer would still open later, maybe in the
+	// middle of a job, so the modal can't be closed until the update attempt ends
+	const handleClose = () => {
+		if (!isUpdating) {
+			onClose();
+		}
+	};
+
 	return (
-		<Modal visible oncloseCallback={onClose}>
+		<Modal visible canClose={!isUpdating} oncloseCallback={handleClose}>
 			<View style={styles.container}>
 				<Typography type="heading" size="medium">
 					{title}
@@ -43,7 +51,8 @@ const UpdatePromptModal = ({title, message, texts, onUpdate, onClose}: UpdatePro
 					value={texts.laterButton}
 					variant="text"
 					style={styles.laterButton}
-					onPress={onClose}
+					disabled={isUpdating}
+					onPress={handleClose}
 				/>
 				{!!feedback && <Typography style={styles.feedback}>{feedback}</Typography>}
 			</View>
