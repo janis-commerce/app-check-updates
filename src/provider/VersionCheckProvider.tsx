@@ -5,7 +5,12 @@ import resolveVersionStatus from '../lib/minVersion/resolveVersionStatus';
 import updateApp, {UpdateMode} from '../lib/install/updateApp';
 import isUpdateAvailable from '../lib/install/isUpdateAvailable';
 import getInstallSource from '../lib/install/getInstallSource';
-import {DismissibleModal, dismiss, isDismissed} from '../lib/dismissals';
+import {
+	isNewVersionPostponed,
+	isWarningPostponed,
+	postponeNewVersion,
+	postponeWarning,
+} from '../lib/postponements';
 import {VersionCheckTexts} from '../ui/texts';
 import UpdatePrompt from '../ui/UpdatePrompt';
 import BlockingScreen from '../ui/BlockingScreen';
@@ -90,14 +95,14 @@ export const VersionCheckProvider = ({
 
 		// The warning already asks to update, so it replaces the new version modal even when postponed
 		if (versionStatus.status === 'warning') {
-			if (!isDismissed('warning')) {
+			if (!isWarningPostponed()) {
 				showModal({type: 'warning', blockingDate: versionStatus.blockingDate, newVersionNumber});
 			}
 			return;
 		}
 
-		// A saved file can't be downloaded offline, so only a fresh one offers the new version
-		if (!isVersionsFileFromCdn || isDismissed('updateAvailable')) {
+		// A saved file can't be downloaded offline, so only one just downloaded from the CDN offers the new version
+		if (!isVersionsFileFromCdn || isNewVersionPostponed()) {
 			return;
 		}
 
@@ -114,7 +119,7 @@ export const VersionCheckProvider = ({
 		// Play shows its own dialog, which has no memory of a rejection, so the TTL is what keeps it from
 		// popping up on every check
 		if (source === 'playStore') {
-			dismiss('updateAvailable', updateAvailableTtl);
+			postponeNewVersion(updateAvailableTtl);
 			await update(newVersionNumber, 'flexible');
 			return;
 		}
@@ -124,20 +129,21 @@ export const VersionCheckProvider = ({
 
 	const contextValue = useMemo(() => ({checkVersion}), [checkVersion]);
 
-	const postpone = (modal: DismissibleModal, ttl: number) => {
-		dismiss(modal, ttl);
+	const postponeWarningPrompt = () => {
+		postponeWarning(warningTtl);
+		setVisibleModal(null);
+	};
+
+	const postponeNewVersionPrompt = () => {
+		postponeNewVersion(updateAvailableTtl);
 		setVisibleModal(null);
 	};
 
 	// Once the update started it goes on in the background, so the prompt gets out of the way until its TTL
-	const updateAndPostpone = async (
-		modal: DismissibleModal,
-		ttl: number,
-		newVersionNumber: string
-	) => {
+	const updateFromPrompt = async (newVersionNumber: string, postponePrompt: () => void) => {
 		const result = await update(newVersionNumber, 'flexible');
 		if (result === 'started') {
-			postpone(modal, ttl);
+			postponePrompt();
 		}
 		return result;
 	};
@@ -157,8 +163,8 @@ export const VersionCheckProvider = ({
 					title={texts.warningTitle}
 					message={texts.warningMessage(new Date(visibleModal.blockingDate))}
 					texts={texts}
-					onUpdate={() => updateAndPostpone('warning', warningTtl, visibleModal.newVersionNumber)}
-					onClose={() => postpone('warning', warningTtl)}
+					onUpdate={() => updateFromPrompt(visibleModal.newVersionNumber, postponeWarningPrompt)}
+					onClose={postponeWarningPrompt}
 				/>
 			)}
 			{visibleModal?.type === 'updateAvailable' && (
@@ -166,10 +172,8 @@ export const VersionCheckProvider = ({
 					title={texts.updateAvailableTitle}
 					message={texts.updateAvailableMessage}
 					texts={texts}
-					onUpdate={() =>
-						updateAndPostpone('updateAvailable', updateAvailableTtl, visibleModal.newVersionNumber)
-					}
-					onClose={() => postpone('updateAvailable', updateAvailableTtl)}
+					onUpdate={() => updateFromPrompt(visibleModal.newVersionNumber, postponeNewVersionPrompt)}
+					onClose={postponeNewVersionPrompt}
 				/>
 			)}
 		</VersionCheckContext.Provider>

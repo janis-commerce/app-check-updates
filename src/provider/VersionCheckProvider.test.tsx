@@ -105,7 +105,7 @@ describe('VersionCheckProvider', () => {
 	let saved: Record<string, unknown>;
 
 	// app-storage drops expired keys by itself, so emptying it is how a TTL expiry looks from here
-	const expireDismissals = () => {
+	const expirePostponements = () => {
 		saved = {};
 	};
 
@@ -196,13 +196,13 @@ describe('VersionCheckProvider', () => {
 			await pressButton(renderer, texts.laterButton);
 
 			expect(getPrompt(renderer)).toBeUndefined();
-			expect(mockStorageSet).toHaveBeenCalledWith('dismissed.warning', true, {expiresAt: 120});
+			expect(mockStorageSet).toHaveBeenCalledWith('postponed.warning', true, {expiresAt: 120});
 
 			const restarted = renderProvider();
 			await runCheck(WARNING_TIME);
 			expect(getPrompt(restarted)).toBeUndefined();
 
-			expireDismissals();
+			expirePostponements();
 			await runCheck(WARNING_TIME);
 			expect(getPrompt(restarted).props.title).toBe(texts.warningTitle);
 		});
@@ -214,7 +214,7 @@ describe('VersionCheckProvider', () => {
 			act(() => renderer.root.findByType(Modal).props.oncloseCallback());
 
 			expect(getPrompt(renderer)).toBeUndefined();
-			expect(mockStorageSet).toHaveBeenCalledWith('dismissed.warning', true, {expiresAt: 120});
+			expect(mockStorageSet).toHaveBeenCalledWith('postponed.warning', true, {expiresAt: 120});
 		});
 
 		it('uses the TTL the app configures', async () => {
@@ -222,7 +222,7 @@ describe('VersionCheckProvider', () => {
 			await runCheck(WARNING_TIME);
 			await pressButton(renderer, texts.laterButton);
 
-			expect(mockStorageSet).toHaveBeenCalledWith('dismissed.warning', true, {expiresAt: 30});
+			expect(mockStorageSet).toHaveBeenCalledWith('postponed.warning', true, {expiresAt: 30});
 		});
 
 		it('updates to the latest version from the warning', async () => {
@@ -250,14 +250,14 @@ describe('VersionCheckProvider', () => {
 			await pressButton(renderer, texts.updateButton);
 
 			expect(getPrompt(renderer)).toBeUndefined();
-			expect(mockStorageSet).toHaveBeenCalledWith('dismissed.warning', true, {expiresAt: 120});
+			expect(mockStorageSet).toHaveBeenCalledWith('postponed.warning', true, {expiresAt: 120});
 		});
 
 		it.each([
 			['shown', false],
 			['postponed', true],
 		])('replaces the new version modal while it is %s', async (_, isPostponed) => {
-			saved = isPostponed ? {'dismissed.warning': true} : {};
+			saved = isPostponed ? {'postponed.warning': true} : {};
 			mockIsUpdateAvailable.mockResolvedValue(true);
 			const renderer = renderProvider();
 
@@ -305,7 +305,7 @@ describe('VersionCheckProvider', () => {
 			await runCheck(BEFORE_WARNING_TIME);
 			await pressButton(renderer, texts.laterButton);
 
-			expect(mockStorageSet).toHaveBeenCalledWith('dismissed.updateAvailable', true, {
+			expect(mockStorageSet).toHaveBeenCalledWith('postponed.newVersion', true, {
 				expiresAt: 120,
 			});
 
@@ -314,7 +314,7 @@ describe('VersionCheckProvider', () => {
 			expect(getPrompt(renderer)).toBeUndefined();
 			expect(mockIsUpdateAvailable).not.toHaveBeenCalled();
 
-			expireDismissals();
+			expirePostponements();
 			await runCheck(BEFORE_WARNING_TIME);
 			expect(getPrompt(renderer).props.title).toBe(texts.updateAvailableTitle);
 		});
@@ -324,7 +324,7 @@ describe('VersionCheckProvider', () => {
 			await runCheck(BEFORE_WARNING_TIME);
 			await pressButton(renderer, texts.laterButton);
 
-			expect(mockStorageSet).toHaveBeenCalledWith('dismissed.updateAvailable', true, {
+			expect(mockStorageSet).toHaveBeenCalledWith('postponed.newVersion', true, {
 				expiresAt: 15,
 			});
 		});
@@ -375,7 +375,7 @@ describe('VersionCheckProvider', () => {
 			await pressButton(renderer, texts.updateButton);
 
 			expect(getPrompt(renderer)).toBeUndefined();
-			expect(mockStorageSet).toHaveBeenCalledWith('dismissed.updateAvailable', true, {
+			expect(mockStorageSet).toHaveBeenCalledWith('postponed.newVersion', true, {
 				expiresAt: 120,
 			});
 		});
@@ -412,14 +412,14 @@ describe('VersionCheckProvider', () => {
 				renderProvider({updateAvailableTtl: 15});
 				await runCheck(BEFORE_WARNING_TIME);
 
-				expect(mockStorageSet).toHaveBeenCalledWith('dismissed.updateAvailable', true, {
+				expect(mockStorageSet).toHaveBeenCalledWith('postponed.newVersion', true, {
 					expiresAt: 15,
 				});
 
 				await runCheck(BEFORE_WARNING_TIME);
 				expect(mockUpdateApp).toHaveBeenCalledTimes(1);
 
-				expireDismissals();
+				expirePostponements();
 				await runCheck(BEFORE_WARNING_TIME);
 				expect(mockUpdateApp).toHaveBeenCalledTimes(2);
 			});
@@ -448,7 +448,7 @@ describe('VersionCheckProvider', () => {
 		});
 
 		it('blocks even when the user postponed the warning', async () => {
-			saved = {'dismissed.warning': true};
+			saved = {'postponed.warning': true};
 			const renderer = renderProvider();
 
 			await runCheck(BLOCKING_TIME);

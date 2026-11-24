@@ -10,10 +10,10 @@ jest.mock('react-native', () => {
 
 import {NativeModules} from 'react-native';
 import RNFS from 'react-native-fs';
-import * as utils from '../utils';
 import updateFromJanis from './updateFromJanis';
 
-jest.spyOn(utils, 'isDevEnv').mockReturnValue(false);
+// Keeps the dev-only console errors out of the test output
+(global as any).__DEV__ = false;
 const mockInstall = NativeModules.ApkInstaller.install as jest.Mock;
 
 const mockRequestMultiple = jest.fn(() => new Promise((resolve) => resolve(true)));

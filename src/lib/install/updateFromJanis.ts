@@ -1,6 +1,5 @@
 import {PermissionsAndroid, Platform, NativeModules} from 'react-native';
 import RNFS from 'react-native-fs';
-import {isDevEnv} from '../utils';
 import Crashlytics from '../crashlytics';
 
 const {ApkInstaller} = NativeModules;
@@ -26,7 +25,6 @@ const envMapper = {
  * @returns {boolean} if you can download the new apk correctly
  */
 const updateFromJanis = async ({env, app, newVersionNumber}: IupdateFromJanis) => {
-	const isDevEnvironment = isDevEnv();
 	try {
 		Crashlytics.log('updateFromJanis:', {env, app, newVersionNumber});
 
@@ -83,7 +81,7 @@ const updateFromJanis = async ({env, app, newVersionNumber}: IupdateFromJanis) =
 					Crashlytics.recordError(installError, 'error installing APK');
 					// Dev-only console output: Crashlytics already records the error, nothing to assert
 					/* istanbul ignore next */
-					if (isDevEnvironment) {
+					if (__DEV__) {
 						// eslint-disable-next-line no-console
 						console.error('Install error:', installError);
 					}
@@ -94,7 +92,7 @@ const updateFromJanis = async ({env, app, newVersionNumber}: IupdateFromJanis) =
 		return false;
 	} catch (error: unknown) {
 		/* istanbul ignore next */
-		if (isDevEnvironment) {
+		if (__DEV__) {
 			// eslint-disable-next-line no-console
 			console.error(error);
 		}

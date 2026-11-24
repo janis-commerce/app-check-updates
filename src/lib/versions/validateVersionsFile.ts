@@ -1,8 +1,10 @@
-import {isString} from '../utils';
 import type {VersionsFile} from './getVersionsInfo';
 import type {MinVersion} from '../minVersion/resolveVersionStatus';
 
-const isDate = (value: unknown) => isString(value) && !Number.isNaN(Date.parse(value as string));
+// @janiscommerce/apps-helpers has isString, but its published type only accepts strings
+const isString = (value: unknown): value is string => typeof value === 'string';
+
+const isDate = (value: unknown) => isString(value) && !Number.isNaN(Date.parse(value));
 
 const isBuildNumber = (value: unknown) =>
 	isString(value) && value !== '' && !Number.isNaN(Number(value));
