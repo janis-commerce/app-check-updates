@@ -7,7 +7,7 @@ import getVersionsInfo from '../lib/versions/getVersionsInfo';
 import updateApp from '../lib/install/updateApp';
 import isUpdateAvailable from '../lib/install/isUpdateAvailable';
 import getInstallSource from '../lib/install/getInstallSource';
-import UpdatePromptModal from '../ui/UpdatePromptModal';
+import UpdatePrompt from '../ui/UpdatePrompt';
 import BlockingScreen from '../ui/BlockingScreen';
 import {VersionCheckProvider, useVersionCheck} from './VersionCheckProvider';
 
@@ -73,8 +73,12 @@ const renderProvider = (props = {}) => {
 	return renderer;
 };
 
-const runCheck = async (now: number, file: object | null = versionsFile, isFresh = true) => {
-	mockGetVersionsInfo.mockResolvedValueOnce({versionsFile: file, now, isFresh});
+const runCheck = async (
+	now: number,
+	file: object | null = versionsFile,
+	isVersionsFileFromCdn = true
+) => {
+	mockGetVersionsInfo.mockResolvedValueOnce({versionsFile: file, now, isVersionsFileFromCdn});
 	await act(async () => {
 		await checkVersion();
 	});
@@ -83,8 +87,7 @@ const runCheck = async (now: number, file: object | null = versionsFile, isFresh
 const getTexts = (renderer: ReactTestRenderer) =>
 	renderer.root.findAllByType(Typography).map(({props}) => props.children);
 
-const getPrompt = (renderer: ReactTestRenderer) =>
-	renderer.root.findAllByType(UpdatePromptModal)[0];
+const getPrompt = (renderer: ReactTestRenderer) => renderer.root.findAllByType(UpdatePrompt)[0];
 
 const pressButton = async (renderer: ReactTestRenderer, value: string) => {
 	await act(async () => {
@@ -174,7 +177,7 @@ describe('VersionCheckProvider', () => {
 		const renderer = renderProvider();
 		await runCheck(now, file);
 
-		expect(renderer.root.findAllByType(UpdatePromptModal)).toHaveLength(0);
+		expect(renderer.root.findAllByType(UpdatePrompt)).toHaveLength(0);
 		expect(renderer.root.findAllByType(BlockingScreen)).toHaveLength(0);
 	});
 

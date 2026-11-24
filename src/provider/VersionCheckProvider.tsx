@@ -7,7 +7,7 @@ import isUpdateAvailable from '../lib/install/isUpdateAvailable';
 import getInstallSource from '../lib/install/getInstallSource';
 import {DismissibleModal, dismiss, isDismissed} from '../lib/dismissals';
 import {VersionCheckTexts} from '../ui/texts';
-import UpdatePromptModal from '../ui/UpdatePromptModal';
+import UpdatePrompt from '../ui/UpdatePrompt';
 import BlockingScreen from '../ui/BlockingScreen';
 
 interface VersionCheckProviderProps {
@@ -45,6 +45,13 @@ export const VersionCheckProvider = ({
 	const [visibleModal, setVisibleModal] = useState<VisibleModal | null>(null);
 	const appInfo = useMemo(getJanisAppInfo, []);
 
+	// Only called once checkVersion found the app info
+	const update = useCallback(
+		(newVersionNumber: string, mode: UpdateMode) =>
+			updateApp({...(appInfo as JanisAppInfo), newVersionNumber, mode}),
+		[appInfo]
+	);
+
 	const checkVersion = useCallback(async () => {
 		// Without a Janis bundle there is no versions.json to read
 		if (!appInfo) {
@@ -62,7 +69,7 @@ export const VersionCheckProvider = ({
 		const showModal = (modal: VisibleModal) =>
 			setVisibleModal((current) => (current?.type === 'blocking' ? current : modal));
 
-		const {versionsFile, now, isFresh} = await getVersionsInfo({env, app});
+		const {versionsFile, now, isVersionsFileFromCdn} = await getVersionsInfo({env, app});
 
 		// Never fetched and offline: there is nothing to enforce yet
 		if (!versionsFile) {
@@ -90,13 +97,15 @@ export const VersionCheckProvider = ({
 		}
 
 		// A saved file can't be downloaded offline, so only a fresh one offers the new version
-		if (!isFresh || isDismissed('updateAvailable')) {
+		if (!isVersionsFileFromCdn || isDismissed('updateAvailable')) {
 			return;
 		}
 
-		if (
-			!(await isUpdateAvailable({buildNumber, currentBuildNumber: versionsFile.currentBuildNumber}))
-		) {
+		const hasNewVersion = await isUpdateAvailable({
+			buildNumber,
+			currentBuildNumber: versionsFile.currentBuildNumber,
+		});
+		if (!hasNewVersion) {
 			return;
 		}
 
@@ -106,18 +115,14 @@ export const VersionCheckProvider = ({
 		// popping up on every check
 		if (source === 'playStore') {
 			dismiss('updateAvailable', updateAvailableTtl);
-			await updateApp({env, app, buildNumber, newVersionNumber, mode: 'flexible'});
+			await update(newVersionNumber, 'flexible');
 			return;
 		}
 
 		showModal({type: 'updateAvailable', newVersionNumber});
-	}, [appInfo, debug, updateAvailableTtl]);
+	}, [appInfo, debug, updateAvailableTtl, update]);
 
 	const contextValue = useMemo(() => ({checkVersion}), [checkVersion]);
-
-	// A modal is only shown after checkVersion found the app info
-	const update = (newVersionNumber: string, mode: UpdateMode) =>
-		updateApp({...(appInfo as JanisAppInfo), newVersionNumber, mode});
 
 	const postpone = (modal: DismissibleModal, ttl: number) => {
 		dismiss(modal, ttl);
@@ -148,7 +153,7 @@ export const VersionCheckProvider = ({
 				/>
 			)}
 			{visibleModal?.type === 'warning' && (
-				<UpdatePromptModal
+				<UpdatePrompt
 					title={texts.warningTitle}
 					message={texts.warningMessage(new Date(visibleModal.blockingDate))}
 					texts={texts}
@@ -157,7 +162,7 @@ export const VersionCheckProvider = ({
 				/>
 			)}
 			{visibleModal?.type === 'updateAvailable' && (
-				<UpdatePromptModal
+				<UpdatePrompt
 					title={texts.updateAvailableTitle}
 					message={texts.updateAvailableMessage}
 					texts={texts}

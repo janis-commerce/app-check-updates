@@ -4,7 +4,7 @@ import {Button, Modal, Typography} from '@janiscommerce/ui-native';
 import {VersionCheckTexts} from './texts';
 import useUpdateAction, {UpdateResult} from './useUpdateAction';
 
-interface UpdatePromptModalProps {
+interface UpdatePromptProps {
 	title: string;
 	message: string;
 	texts: VersionCheckTexts;
@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
 	},
 });
 
-const UpdatePromptModal = ({title, message, texts, onUpdate, onClose}: UpdatePromptModalProps) => {
+const UpdatePrompt = ({title, message, texts, onUpdate, onClose}: UpdatePromptProps) => {
 	const {isUpdating, feedback, handleUpdate} = useUpdateAction(onUpdate, texts);
 
 	// Closing mid-download would not stop it: the installer would still open later, maybe in the
@@ -54,4 +54,4 @@ const UpdatePromptModal = ({title, message, texts, onUpdate, onClose}: UpdatePro
 	);
 };
 
-export default UpdatePromptModal;
+export default UpdatePrompt;
