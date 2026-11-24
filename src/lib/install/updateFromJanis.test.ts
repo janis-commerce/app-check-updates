@@ -20,7 +20,6 @@ const mockRequestMultiple = jest.fn(() => new Promise((resolve) => resolve(true)
 const mockCheck = jest.fn();
 const RNFSExistsSpy = jest.spyOn(RNFS, 'exists');
 const RNFSUnlinkSpy = jest.spyOn(RNFS, 'unlink');
-const RNFSReadDirSpy = jest.spyOn(RNFS, 'readDir');
 const RNFSMkdirSpy = jest.spyOn(RNFS, 'mkdir');
 const RNFSDownloadFileSpy = jest.spyOn(RNFS, 'downloadFile');
 
@@ -93,12 +92,11 @@ describe('updateFromJanis', () => {
 	it('replaces the APKs left by a previous download', async () => {
 		mockDownload(200);
 		RNFSExistsSpy.mockResolvedValueOnce(true);
-		RNFSReadDirSpy.mockResolvedValueOnce([{path: `${APK_DIR}/picking-qa.2.9.0.2400.apk`}] as any);
 
 		await updateFromJanis(params);
 
-		expect(RNFSUnlinkSpy).toHaveBeenCalledWith(`${APK_DIR}/picking-qa.2.9.0.2400.apk`);
-		expect(RNFSMkdirSpy).not.toHaveBeenCalled();
+		expect(RNFSUnlinkSpy).toHaveBeenCalledWith(APK_DIR);
+		expect(RNFSMkdirSpy).toHaveBeenCalledWith(APK_DIR);
 	});
 
 	it('creates the download folder the first time', async () => {
@@ -106,6 +104,7 @@ describe('updateFromJanis', () => {
 
 		await updateFromJanis(params);
 
+		expect(RNFSUnlinkSpy).not.toHaveBeenCalled();
 		expect(RNFSMkdirSpy).toHaveBeenCalledWith(APK_DIR);
 	});
 

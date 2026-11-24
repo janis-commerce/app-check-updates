@@ -1,12 +1,11 @@
 import {PermissionsAndroid, Platform, NativeModules} from 'react-native';
 import RNFS from 'react-native-fs';
 import Crashlytics from '../crashlytics';
+import type {JanisAppInfo} from '../appInfo';
 
 const {ApkInstaller} = NativeModules;
 
-interface IupdateFromJanis {
-	env: 'janisdev' | 'janisqa' | 'janis';
-	app: 'picking' | 'delivery' | 'wms';
+interface IupdateFromJanis extends Pick<JanisAppInfo, 'env' | 'app'> {
 	newVersionNumber: string;
 }
 
@@ -30,9 +29,7 @@ const updateFromJanis = async ({env, app, newVersionNumber}: IupdateFromJanis) =
 
 		const validUrl = `https://mobile.${env}.in/api/download/${app}/android/latest`;
 
-		const apiVersion = Platform.Version;
-
-		if (Number(apiVersion) < 33) {
+		if (Number(Platform.Version) < 33) {
 			await PermissionsAndroid.requestMultiple([
 				PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
 				PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
@@ -52,17 +49,11 @@ const updateFromJanis = async ({env, app, newVersionNumber}: IupdateFromJanis) =
 		const targetEnv = envMapper[env];
 		const targetDir = `${RNFS.DownloadDirectoryPath}/${app}${targetEnv}-apk`;
 
-		const targetDirExists = await RNFS.exists(targetDir);
-
-		if (targetDirExists) {
-			const files = await RNFS.readDir(targetDir);
-
-			for (const file of files) {
-				await RNFS.unlink(file.path);
-			}
-		} else {
-			await RNFS.mkdir(targetDir);
+		// Removing the whole folder drops the APKs left by a previous download
+		if (await RNFS.exists(targetDir)) {
+			await RNFS.unlink(targetDir);
 		}
+		await RNFS.mkdir(targetDir);
 
 		const apkPath = `${targetDir}/${app}${targetEnv}.${newVersionNumber}.apk`;
 
@@ -72,7 +63,6 @@ const updateFromJanis = async ({env, app, newVersionNumber}: IupdateFromJanis) =
 		}).promise;
 
 		if (response.statusCode === 200) {
-			// Instalar automáticamente la APK descargada
 			await ApkInstaller.install(apkPath)
 				.then(() => {
 					Crashlytics.log('APK installation started successfully');
@@ -98,7 +88,7 @@ const updateFromJanis = async ({env, app, newVersionNumber}: IupdateFromJanis) =
 		}
 		Crashlytics.recordError(error, 'error updating app by updateFromJanis');
 
-		return Promise.reject(error);
+		throw error;
 	}
 };
 

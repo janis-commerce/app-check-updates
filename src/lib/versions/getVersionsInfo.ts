@@ -2,6 +2,7 @@ import storage from '../storage';
 import Crashlytics from '../crashlytics';
 import {MinVersion} from '../minVersion/resolveVersionStatus';
 import {isValidVersionsFile} from './validateVersionsFile';
+import type {JanisAppInfo} from '../appInfo';
 
 export interface VersionsFile {
 	currentVersion: string;
@@ -9,10 +10,7 @@ export interface VersionsFile {
 	minVersions?: MinVersion[];
 }
 
-interface IgetVersionsInfo {
-	env: 'janisdev' | 'janisqa' | 'janis';
-	app: 'picking' | 'delivery' | 'wms';
-}
+type IgetVersionsInfo = Pick<JanisAppInfo, 'env' | 'app'>;
 
 const VERSIONS_FILE_KEY = 'versionsFile';
 const SERVER_TIME_KEY = 'lastServerTime';

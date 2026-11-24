@@ -32,24 +32,17 @@ const resolveVersionStatus = ({minVersions, buildNumber, now}: IresolveVersionSt
 		.filter(isValidMinVersion)
 		.filter((minVersion) => Number(minVersion.buildNumber) > Number(buildNumber));
 
-	const blockingMinVersions = pendingMinVersions.filter(
-		({blockingStartsAt}) => Date.parse(blockingStartsAt) <= now
-	);
+	const startedBy = (date: 'warningStartsAt' | 'blockingStartsAt') =>
+		pendingMinVersions.filter((minVersion) => Date.parse(minVersion[date]) <= now);
+
+	const blockingMinVersions = startedBy('blockingStartsAt');
 	if (blockingMinVersions.length) {
-		return {
-			status: 'blocked' as const,
-			blockingDate: getEarliestBlockingDate(blockingMinVersions),
-		};
+		return {status: 'blocked' as const, blockingDate: getEarliestBlockingDate(blockingMinVersions)};
 	}
 
-	const warningMinVersions = pendingMinVersions.filter(
-		({warningStartsAt}) => Date.parse(warningStartsAt) <= now
-	);
+	const warningMinVersions = startedBy('warningStartsAt');
 	if (warningMinVersions.length) {
-		return {
-			status: 'warning' as const,
-			blockingDate: getEarliestBlockingDate(warningMinVersions),
-		};
+		return {status: 'warning' as const, blockingDate: getEarliestBlockingDate(warningMinVersions)};
 	}
 
 	return {status: 'ok' as const, blockingDate: null};

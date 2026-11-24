@@ -1,7 +1,9 @@
 import {useState} from 'react';
 import {VersionCheckTexts} from './texts';
 
-export type UpdateResult = 'started' | 'unavailable' | 'failed';
+import type {UpdateResult} from '../lib/install/updateApp';
+
+export type {UpdateResult};
 
 type FeedbackTexts = Pick<VersionCheckTexts, 'updateUnavailable' | 'updateFailed'>;
 

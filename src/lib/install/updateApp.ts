@@ -2,15 +2,13 @@ import SpInAppUpdates, {IAUInstallStatus, IAUUpdateKind} from 'sp-react-native-i
 import updateFromJanis from './updateFromJanis';
 import getInstallSource from './getInstallSource';
 import Crashlytics from '../crashlytics';
+import type {JanisAppInfo} from '../appInfo';
 
 export type UpdateResult = 'started' | 'unavailable' | 'failed';
 
 export type UpdateMode = 'immediate' | 'flexible';
 
-interface IupdateApp {
-	env: 'janisdev' | 'janisqa' | 'janis';
-	app: 'picking' | 'delivery' | 'wms';
-	buildNumber: string;
+interface IupdateApp extends JanisAppInfo {
 	newVersionNumber: string;
 	mode: UpdateMode;
 }
