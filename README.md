@@ -13,11 +13,11 @@ Wrap the logged-in part of the app with `VersionCheckProvider` and call `checkVe
 
 1. **Blocking screen**: the installed build is below a min version whose blocking date passed. It can't be closed and stays until the app restarts.
 2. **Warning**: the installed build is below a min version whose warning started. Shows the blocking date.
-3. **New version available**: the install channel offers a newer build.
+3. **New version available**: the install channel offers a newer build. Play installs get Play's own update dialog instead of the package modal.
 
-The warning and the new version modal have **Update** and **Later**. Later hides the modal for its TTL, saved in storage so it survives restarts. While the warning applies, the new version modal is not shown: the warning already asks to update.
+The warning and the new version modal have **Update** and **Later**. Later hides the modal for its TTL, saved in storage so it survives restarts. Once the update starts, the modal closes and counts as postponed. Play's dialog is postponed for the same TTL as soon as it opens, whatever the user answers. While the warning applies, the new version modal is not shown: the warning already asks to update.
 
-**Update** uses the channel the app was installed from: immediate Play Store update for Play installs, APK download from Janis for the rest. If Play does not offer the new build yet, the modal says so.
+**Update** uses the channel the app was installed from: on Play installs, a flexible Play Store update from the warning and an immediate one from the blocking screen; the rest download the APK from Janis. If Play does not offer the new build yet, the modal says so.
 
 The current time comes from the server (`Date` + `Age` headers). Offline, the last valid `versions.json` is applied with the latest of the device clock and the last server time seen, so setting the clock back doesn't skip the block.
 
@@ -31,7 +31,7 @@ The current time comes from the server (`Date` + `Age` headers). Offline, the la
 | ------------------ | ----------------- | --------------------------------------------------------------------------------------------------------------------- |
 | texts              | (required) Object | Translated texts, see below                                                                                           |
 | warningTtl         | (optional) Number | Minutes the warning stays hidden after Later. Default 120                                                             |
-| updateAvailableTtl | (optional) Number | Minutes the new version modal stays hidden after Later. Default 120                                                   |
+| updateAvailableTtl | (optional) Number | Minutes the new version modal or Play dialog stays hidden after Later. Default 120                                    |
 | debug              | (optional) Bool   | Also checks on development builds (`__DEV__`), to try the flows locally. Published builds always check. Default false |
 
 `texts` keys: `warningTitle`, `blockingTitle`, `updateAvailableTitle`, `updateAvailableMessage`, `updateButton`, `laterButton`, `updateUnavailable` (Play Store doesn't offer the new version yet), `updateFailed`, and `warningMessage` / `blockingMessage`, which are functions that receive the blocking `Date` so the app formats it in the user's language.
