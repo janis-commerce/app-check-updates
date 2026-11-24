@@ -332,26 +332,23 @@ describe('VersionCheckProvider', () => {
 			const renderer = renderProvider();
 			await runCheck(BEFORE_WARNING_TIME);
 
+			const getLaterButton = () =>
+				renderer.root.findAllByType(Button).find(({props}) => props.value === texts.laterButton);
+
 			act(() => {
 				renderer.root
 					.findAllByType(Button)
 					.find(({props}) => props.value === texts.updateButton)
 					?.props.onPress();
 			});
-			await pressButton(renderer, texts.laterButton);
-			act(() => renderer.root.findByType(Modal).props.oncloseCallback());
 
-			expect(getPrompt(renderer).props.title).toBe(texts.updateAvailableTitle);
-			expect(mockStorageSet).not.toHaveBeenCalledWith(
-				'dismissed.updateAvailable',
-				true,
-				expect.anything()
-			);
+			expect(renderer.root.findByType(Modal).props.canClose).toBe(false);
+			expect(getLaterButton()?.props.disabled).toBe(true);
 
 			await act(async () => resolveUpdate('failed'));
-			await pressButton(renderer, texts.laterButton);
 
-			expect(getPrompt(renderer)).toBeUndefined();
+			expect(renderer.root.findByType(Modal).props.canClose).toBe(true);
+			expect(getLaterButton()?.props.disabled).toBe(false);
 		});
 
 		it('updates to the latest version', async () => {

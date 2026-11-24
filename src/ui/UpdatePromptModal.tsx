@@ -33,14 +33,8 @@ const UpdatePromptModal = ({title, message, texts, onUpdate, onClose}: UpdatePro
 
 	// Closing mid-download would not stop it: the installer would still open later, maybe in the
 	// middle of a job, so the modal can't be closed until the update attempt ends
-	const handleClose = () => {
-		if (!isUpdating) {
-			onClose();
-		}
-	};
-
 	return (
-		<Modal visible canClose={!isUpdating} oncloseCallback={handleClose}>
+		<Modal visible canClose={!isUpdating} oncloseCallback={onClose}>
 			<View style={styles.container}>
 				<Typography type="heading" size="medium">
 					{title}
@@ -52,7 +46,7 @@ const UpdatePromptModal = ({title, message, texts, onUpdate, onClose}: UpdatePro
 					variant="text"
 					style={styles.laterButton}
 					disabled={isUpdating}
-					onPress={handleClose}
+					onPress={onClose}
 				/>
 				{!!feedback && <Typography style={styles.feedback}>{feedback}</Typography>}
 			</View>
