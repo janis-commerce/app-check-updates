@@ -1,4 +1,4 @@
-import SpInAppUpdates from 'sp-react-native-in-app-updates';
+import inAppUpdates from './playStore';
 import getInstallSource from './getInstallSource';
 import Crashlytics from '../crashlytics';
 
@@ -18,7 +18,6 @@ const isUpdateAvailable = async ({buildNumber, currentBuildNumber}: IisUpdateAva
 	try {
 		// Play Store can lag behind the build published in Janis, so only Play knows what it offers
 		if ((await getInstallSource()) === 'playStore') {
-			const inAppUpdates = new SpInAppUpdates(false);
 			const {shouldUpdate} = await inAppUpdates.checkNeedsUpdate({curVersion: buildNumber});
 			return shouldUpdate;
 		}

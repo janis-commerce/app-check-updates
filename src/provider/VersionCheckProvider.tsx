@@ -1,4 +1,12 @@
-import React, {ReactNode, createContext, useCallback, useContext, useMemo, useState} from 'react';
+import React, {
+	ReactNode,
+	createContext,
+	useCallback,
+	useContext,
+	useMemo,
+	useRef,
+	useState,
+} from 'react';
 import getJanisAppInfo, {JanisAppInfo} from '../lib/appInfo';
 import getVersionsInfo from '../lib/versions/getVersionsInfo';
 import resolveVersionStatus from '../lib/minVersion/resolveVersionStatus';
@@ -57,7 +65,7 @@ export const VersionCheckProvider = ({
 		[appInfo]
 	);
 
-	const checkVersion = useCallback(async () => {
+	const check = useCallback(async () => {
 		// Without a Janis bundle there is no versions.json to read
 		if (!appInfo) {
 			return;
@@ -126,6 +134,21 @@ export const VersionCheckProvider = ({
 
 		showModal({type: 'updateAvailable', newVersionNumber});
 	}, [appInfo, debug, updateAvailableTtl, update]);
+
+	// Two safe points can call it before the first check ends: both would pass the postponement and
+	// open Play's dialog twice
+	const isChecking = useRef(false);
+	const checkVersion = useCallback(async () => {
+		if (isChecking.current) {
+			return;
+		}
+		isChecking.current = true;
+		try {
+			await check();
+		} finally {
+			isChecking.current = false;
+		}
+	}, [check]);
 
 	const contextValue = useMemo(() => ({checkVersion}), [checkVersion]);
 

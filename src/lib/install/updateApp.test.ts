@@ -1,18 +1,18 @@
 const mockCheckNeedsUpdate = jest.fn();
 const mockStartUpdate = jest.fn();
-const mockAddStatusUpdateListener = jest.fn();
-const mockInstallUpdate = jest.fn();
 
 jest.mock('sp-react-native-in-app-updates', () => ({
 	__esModule: true,
-	default: jest.fn(() => ({
-		checkNeedsUpdate: mockCheckNeedsUpdate,
-		startUpdate: mockStartUpdate,
-		addStatusUpdateListener: mockAddStatusUpdateListener,
-		installUpdate: mockInstallUpdate,
-	})),
 	IAUUpdateKind: {FLEXIBLE: 0, IMMEDIATE: 1},
-	IAUInstallStatus: {DOWNLOADING: 2, DOWNLOADED: 11},
+}));
+jest.mock('./playStore', () => ({
+	__esModule: true,
+	// Created on import, before the mocks above exist, so it reaches them through a call
+	default: {
+		checkNeedsUpdate: (options: unknown) => mockCheckNeedsUpdate(options),
+		startUpdate: (options: unknown) => mockStartUpdate(options),
+	},
+	installWhenDownloaded: jest.fn(),
 }));
 
 jest.mock('./updateFromJanis', () => ({__esModule: true, default: jest.fn()}));
@@ -22,6 +22,7 @@ import updateFromJanis from './updateFromJanis';
 import getInstallSource from './getInstallSource';
 import Crashlytics from '../crashlytics';
 import updateApp from './updateApp';
+import {installWhenDownloaded} from './playStore';
 
 const mockGetInstallSource = getInstallSource as jest.Mock;
 const mockUpdateFromJanis = updateFromJanis as jest.Mock;
@@ -45,13 +46,7 @@ describe('updateApp', () => {
 
 			expect(await updateApp({...params, mode: 'flexible'})).toBe('started');
 			expect(mockStartUpdate).toHaveBeenCalledWith({updateType: 0});
-
-			const onStatusUpdate = mockAddStatusUpdateListener.mock.calls[0][0];
-			onStatusUpdate({status: 2});
-			expect(mockInstallUpdate).not.toHaveBeenCalled();
-
-			onStatusUpdate({status: 11});
-			expect(mockInstallUpdate).toHaveBeenCalled();
+			expect(installWhenDownloaded).toHaveBeenCalled();
 		});
 
 		it('starts an immediate update when Play offers a new version', async () => {
@@ -61,7 +56,7 @@ describe('updateApp', () => {
 			expect(Crashlytics.log).toHaveBeenCalledWith('updateApp:', params);
 			expect(mockCheckNeedsUpdate).toHaveBeenCalledWith({curVersion: '2300'});
 			expect(mockStartUpdate).toHaveBeenCalledWith({updateType: 1});
-			expect(mockAddStatusUpdateListener).not.toHaveBeenCalled();
+			expect(installWhenDownloaded).not.toHaveBeenCalled();
 			expect(mockUpdateFromJanis).not.toHaveBeenCalled();
 		});
 

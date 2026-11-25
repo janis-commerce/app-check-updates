@@ -2,7 +2,8 @@ const mockCheckNeedsUpdate = jest.fn();
 
 jest.mock('sp-react-native-in-app-updates', () => ({
 	__esModule: true,
-	default: jest.fn(() => ({checkNeedsUpdate: mockCheckNeedsUpdate})),
+	// The Play client is created on import, before mockCheckNeedsUpdate exists, so it is reached through a call
+	default: jest.fn(() => ({checkNeedsUpdate: (options: unknown) => mockCheckNeedsUpdate(options)})),
 }));
 
 jest.mock('./getInstallSource', () => ({__esModule: true, default: jest.fn()}));

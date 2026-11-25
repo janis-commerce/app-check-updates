@@ -1,4 +1,5 @@
-import SpInAppUpdates, {IAUInstallStatus, IAUUpdateKind} from 'sp-react-native-in-app-updates';
+import {IAUUpdateKind} from 'sp-react-native-in-app-updates';
+import inAppUpdates, {installWhenDownloaded} from './playStore';
 import updateFromJanis from './updateFromJanis';
 import getInstallSource from './getInstallSource';
 import Crashlytics from '../crashlytics';
@@ -17,7 +18,6 @@ const updateFromPlayStore = async (
 	buildNumber: string,
 	mode: UpdateMode
 ): Promise<UpdateResult> => {
-	const inAppUpdates = new SpInAppUpdates(false);
 	const {shouldUpdate} = await inAppUpdates.checkNeedsUpdate({curVersion: buildNumber});
 
 	if (!shouldUpdate) {
@@ -29,12 +29,7 @@ const updateFromPlayStore = async (
 		return 'started';
 	}
 
-	// Same as the previous flexible flow: installs (and restarts the app) as soon as the download ends
-	inAppUpdates.addStatusUpdateListener(({status}) => {
-		if (status === IAUInstallStatus.DOWNLOADED) {
-			inAppUpdates.installUpdate();
-		}
-	});
+	installWhenDownloaded();
 	await inAppUpdates.startUpdate({updateType: IAUUpdateKind.FLEXIBLE});
 	return 'started';
 };

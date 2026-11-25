@@ -408,6 +408,21 @@ describe('VersionCheckProvider', () => {
 				});
 			});
 
+			it('opens it once when two checks overlap', async () => {
+				mockGetVersionsInfo.mockResolvedValue({
+					versionsFile,
+					now: BEFORE_WARNING_TIME,
+					isVersionsFileFromCdn: true,
+				});
+				renderProvider();
+
+				await act(async () => {
+					await Promise.all([checkVersion(), checkVersion()]);
+				});
+
+				expect(mockUpdateApp).toHaveBeenCalledTimes(1);
+			});
+
 			it('does not open it again until the TTL the app configures expires', async () => {
 				renderProvider({updateAvailableTtl: 15});
 				await runCheck(BEFORE_WARNING_TIME);
